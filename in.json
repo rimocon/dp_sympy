@@ -1,0 +1,27 @@
+{
+    "_comment": [
+        "double pendulum equation",
+        "params: k1,k2,tau1,tau2",
+        "const: M1,M2,L1,L2,G"
+    ],
+    "x0": [
+        1,
+        1,
+        1,
+        1
+    ],
+    "params": [
+        1.0,
+        1.0,
+        4.6,
+        0.0
+    ],
+    "const": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        9.8
+    ],
+    "xdim": 4
+}
