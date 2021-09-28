@@ -6,6 +6,8 @@ So far, The Jacobi matrix of the system, the equilibrium points, and their eigen
 
 However, there may be some problems in terms of calculation speed and accuracy.
 
+***
+
 ## Requirements
 * python(3.9~)
 * sympy
@@ -14,4 +16,4 @@ However, there may be some problems in terms of calculation speed and accuracy.
 
 ## Usage
 
-'''python dp.py in.json'''
+```python dp.py in.json```
