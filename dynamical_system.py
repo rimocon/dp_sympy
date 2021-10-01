@@ -2,8 +2,11 @@ import numpy as np
 import sympy as sp
 from sympy import sin, cos
 
+
 def map(x, p, c):
-    # double pendulum
+
+    # double pendulum  equation
+    # x:variable, p:parameters, c:constant
 
     M1 = c[0]
     M2 = c[1]
@@ -53,5 +56,4 @@ class DynamicalSystem:
         self.sym_p = sp.MatrixSymbol('p', sp.shape(self.params)[0],1)
         self.F = map(self.sym_x, self.sym_p, self.const)
         self.dFdx = self.F.jacobian(self.sym_x)
-        
         

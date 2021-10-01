@@ -15,13 +15,13 @@ def equilibrium(ds):
 
 def eigen(x0, ds):
 
-    # 固有値用の行列を定義
+    # define matrix for eigen values
     eig = np.zeros([4,4],dtype = complex)
 
     for i in range(ds.xdim):
-        # 平衡点の値をヤコビ行列に代入: df/dx(x0)してndarrayに変換
+        # subs eqpoints for jacobian(df/dx(x0)) and convert to ndarray
         np_jac = sp.matrix2numpy(ds.dFdx.subs([(ds.sym_x, x0.T.col(i)), (ds.sym_p, ds.params)]), dtype = np.float64)
-        # 固有値,固有ベクトルを求める
+        # calculate eigen values,eigen vectors
         eig_temp, eigv_temp = np.linalg.eig(np_jac)
         # print(eigv_temp)
         eig[i,:] = eig_temp

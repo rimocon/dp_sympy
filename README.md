@@ -4,6 +4,7 @@ I hope to develop this repos as a bifurcation analysis tool for complex dynamica
 
 So far, The Jacobi matrix of the system, the equilibrium points, and their eigenvalues and eigenvectors can be calculated.
 
+
 However, there may be some problems in terms of calculation speed and accuracy.
 
 ***
@@ -16,4 +17,7 @@ However, there may be some problems in terms of calculation speed and accuracy.
 
 ## Usage
 
-```python dp.py in.json```
+```python dp.py in.json eq.json```
+
+```in.json:``` input files
+```eq.json``` output files
