@@ -1,7 +1,7 @@
 import numpy as np
 import sympy as sp
 from sympy import sin, cos
-
+import matplotlib.pyplot as plt
 
 def map(x, p, c):
 
@@ -46,6 +46,12 @@ class DynamicalSystem:
     sym_p = 0
     dFdx = []
 
+    running = None
+    fig = None
+    ax = None
+
+    xrange = []
+    yrange = []
     def __init__(self, json):
         self.x0 = sp.Matrix(json['x0'])
         self.params = sp.Matrix(json['params'])
@@ -56,4 +62,9 @@ class DynamicalSystem:
         self.sym_p = sp.MatrixSymbol('p', sp.shape(self.params)[0],1)
         self.F = map(self.sym_x, self.sym_p, self.const)
         self.dFdx = self.F.jacobian(self.sym_x)
+        self.fig = plt.figure(figsize = (8, 8))
+        self.ax = self.fig.add_subplot(111)
+        self.running = True
+        self.xrange = json['xrange']
+        self.yrange = json['yrange']
         
