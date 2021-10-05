@@ -46,12 +46,15 @@ class DynamicalSystem:
     sym_p = 0
     dFdx = []
 
+    # for pp
     running = None
     fig = None
     ax = None
-
     xrange = []
     yrange = []
+    state0 = []
+    eq = []
+    x_ptr = 0
     def __init__(self, json):
         self.x0 = sp.Matrix(json['x0'])
         self.params = sp.Matrix(json['params'])
@@ -62,6 +65,7 @@ class DynamicalSystem:
         self.sym_p = sp.MatrixSymbol('p', sp.shape(self.params)[0],1)
         self.F = map(self.sym_x, self.sym_p, self.const)
         self.dFdx = self.F.jacobian(self.sym_x)
+
         self.fig = plt.figure(figsize = (8, 8))
         self.ax = self.fig.add_subplot(111)
         self.running = True

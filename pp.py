@@ -6,8 +6,11 @@ import numpy as np
 import sympy as sp
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
-from sympy import sin,cos
+# from sympy import sin,cos
+from numpy import sin,cos
 from time import time
+
+
 '''
 def func(t, x, ds):
     # sympy F
@@ -16,36 +19,35 @@ def func(t, x, ds):
     ret = ds_func.sp2np(sp_f).flatten()
     return ret
 '''
-def func(t, x, ds):
+def func(t, x, p, c):
+    M1 = c[0]
+    M2 = c[1]
+    L1 = c[2]
+    L2 = c[3]
+    G = c[4]
 
-    M1 = ds.const[0]
-    M2 = ds.const[1]
-    L1 = ds.const[2]
-    L2 = ds.const[3]
-    G = ds.const[4]
 
     a11 = M2 * L2 * L2 + (M1 + M2) * L1 * L1 + 2 * M2 * L1 * L2 * cos(x[2])
     a12 = M2 * L2 * L2 + M2 * L1 * L2 * cos(x[2])
     a21 = a12
     a22 = M2 * L2 * L2
-    b1 = (ds.params[2] + M2 * L1 * L2 * sin(x[2]) * x[3] * x[3]
+    b1 = (p[2] + M2 * L1 * L2 * sin(x[2]) * x[3] * x[3]
         + 2 * M2 * L1 * L2 * sin(x[2]) * x[1] * x[3]
         - M2 * L2 * G * cos(x[0] + x[2])
         - (M1 + M2) * L1 * G * cos(x[0])
-        - ds.params[0] * x[1])
-    b2 = (ds.params[3] - M2 * L1 * L2 * sin(x[2]) * x[1] * x[1]
+        - p[0] * x[1])
+    b2 = (p[3] - M2 * L1 * L2 * sin(x[2]) * x[1] * x[1]
         - M2 * L2 * G * cos(x[0] + x[2]) 
-        - ds.params[1] * x[3])
+        - p[1] * x[3])
     delta = a11 * a22 - a12 * a21
 
-    ret = np.array([x[1],
-                    (b1 * a22 - b2 * a12) / delta,
-                    x[3],
-                    (b2 * a11 - b1 * a21) / delta
-                    ])
+    ret = np.array([
+        x[1],
+        (b1 * a22 - b2 * a12) / delta,
+        x[3],
+        (b2 * a11 - b1 * a21) / delta
+    ])
     return ret
-
-
 
 def main():
     # load data from json file
@@ -57,56 +59,75 @@ def main():
     fd.close()
     # input data to constructor
     ds = dynamical_system.DynamicalSystem(json_data)
-
     # calculate equilibrium points
-    eq = ds_func.equilibrium(ds)
+    ds.eq = ds_func.equilibrium(ds)
     # convert to numpy
-    state0 = ds_func.sp2np(eq[0,:].reshape(ds.xdim, 1)).flatten()
-
+    ds.state0 = ds_func.sp2np(ds.eq[0,:].reshape(ds.xdim, 1)).flatten()
     # calculate orbit
-    duration = 0.1
-    tick = 0.01
-    period = 0.0
-    times= 0.0
+    duration = 0.5
+    tick = 0.05
     matplotinit(ds)
+    
+    p = ds_func.sp2np(ds.params).flatten()
+    c = ds_func.sp2np(ds.const).flatten()
     while ds.running == True:
-        start = time()
-        state = solve_ivp(func, (0, duration), state0,
-            method='RK45', args=(ds, ), max_step=tick,
-            rtol=1e-12, dense_output=True)
-        state_time = time() - start
-        print("state計測にかかる時間",state_time)
+        state = solve_ivp(func, (0, duration), ds.state0,
+            method='RK45', args = (p, c), max_step=tick,
+            rtol=1e-12, vectorized = True) 
+        
         ds.ax.plot(state.y[0,:], state.y[1,:],
                 linewidth=1, color=(0.1, 0.1, 0.3),
                 ls="-")
-        state0 = state.y[:, -1]
-        times += state.t[-1]
-        period += duration
-        elapsed_time = time() - start
-        print("１ループにかかる時間",elapsed_time)
-        plt.pause(0.0001)  # REQIRED
-    
+        ds.state0 = state.y[:, -1]
+        plt.pause(0.001)  # REQIRED
+
 def matplotinit(ds):
-    ds.ax.set_xlim(ds.xrange)
-    ds.ax.set_ylim(ds.yrange)
+    redraw(ds)
     plt.connect('button_press_event',
                 lambda event: on_click(event, ds))
     plt.connect('key_press_event',
                 lambda event: keyin(event, ds))
 
+def redraw(ds):
+    ds.ax.set_xlim(ds.xrange)
+    ds.ax.set_ylim(ds.yrange)
+    ds.ax.grid(c='gainsboro', ls='--', zorder=9)
+
+def eq_change(ds):
+    ds.x_ptr += 1
+    if(ds.x_ptr >= ds.xdim):
+        ds.x_ptr = 0
+    ds.state0 = ds_func.sp2np(ds.eq[ds.x_ptr,:].reshape(ds.xdim, 1)).flatten()
+
 def on_click(event, ds):
-    # left click
+    #left click
+    '''
     if event.button == 1:
         ds.running = False
         plt.clf()
         plt.close()
+    '''
+    print("click")
+
+def state_reset(ds):
+    ds.state0 = ds_func.sp2np(ds.eq[ds.x_ptr,:].reshape(ds.xdim, 1)).flatten()
 
 def keyin(event, ds):
     if event.key == 'q':
+        ds.running = False
         plt.clf()
         plt.close('all')
         print("quit")
         sys.exit()
+    elif event.key == ' ':
+        ds.ax.cla()
+        redraw(ds)
+        state_reset(ds)
+    elif event.key == 'x':
+        ds.ax.cla()
+        redraw(ds)
+        eq_change(ds)
+
 
 if __name__ == '__main__':
     main()
