@@ -26,6 +26,6 @@ def eigen(x0, ds):
         # print(eigv_temp)
         eig[i,:] = eig_temp
     return eig
-    
+
 def sp2np(x):
     return sp.matrix2numpy(x, dtype = np.float64)

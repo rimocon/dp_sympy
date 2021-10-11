@@ -8,10 +8,10 @@ from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 # from sympy import sin,cos
 from numpy import sin,cos
-from time import time
 
 
 '''
+# if use sympy matrix
 def func(t, x, ds):
     # sympy F
     sp_f = dynamical_system.map(sp.Matrix(x), ds.params, ds.const)
@@ -60,16 +60,19 @@ def main():
     # input data to constructor
     ds = dynamical_system.DynamicalSystem(json_data)
     # calculate equilibrium points
-    ds.eq = ds_func.equilibrium(ds)
+    eq= ds_func.equilibrium(ds)
     # convert to numpy
-    ds.state0 = ds_func.sp2np(ds.eq[0,:].reshape(ds.xdim, 1)).flatten()
+    ds.eq = ds_func.sp2np(eq)
+    ds.state0 = ds.eq[0,:].flatten()
     # calculate orbit
     duration = 0.5
     tick = 0.05
     matplotinit(ds)
-    
+    # import numpy parameter
     p = ds_func.sp2np(ds.params).flatten()
+    # import numpy constant
     c = ds_func.sp2np(ds.const).flatten()
+    show_params(ds)
     while ds.running == True:
         state = solve_ivp(func, (0, duration), ds.state0,
             method='RK45', args = (p, c), max_step=tick,
@@ -77,6 +80,9 @@ def main():
         
         ds.ax.plot(state.y[0,:], state.y[1,:],
                 linewidth=1, color=(0.1, 0.1, 0.3),
+                ls="-")
+        ds.ax.plot(state.y[2,:], state.y[3,:],
+                linewidth=1, color=(0.3, 0.1, 0.1),
                 ls="-")
         ds.state0 = state.y[:, -1]
         plt.pause(0.001)  # REQIRED
@@ -89,6 +95,7 @@ def matplotinit(ds):
                 lambda event: keyin(event, ds))
 
 def redraw(ds):
+    show_params(ds)
     ds.ax.set_xlim(ds.xrange)
     ds.ax.set_ylim(ds.yrange)
     ds.ax.grid(c='gainsboro', ls='--', zorder=9)
@@ -97,20 +104,23 @@ def eq_change(ds):
     ds.x_ptr += 1
     if(ds.x_ptr >= ds.xdim):
         ds.x_ptr = 0
-    ds.state0 = ds_func.sp2np(ds.eq[ds.x_ptr,:].reshape(ds.xdim, 1)).flatten()
+    ds.state0 = ds.eq[ds.x_ptr, :].flatten()
 
 def on_click(event, ds):
     #left click
-    '''
-    if event.button == 1:
-        ds.running = False
-        plt.clf()
-        plt.close()
-    '''
-    print("click")
+    if event.xdata == None or event.ydata == None:
+        return
+    plt.cla()
+    redraw(ds)
+    if ds.dim_ptr <= 0:
+        ds.state0[0] = event.xdata
+        ds.state0[1] = event.ydata
+    if ds.dim_ptr >= 1:
+        ds.state0[2] = event.xdata
+        ds.state0[3] = event.ydata
 
 def state_reset(ds):
-    ds.state0 = ds_func.sp2np(ds.eq[ds.x_ptr,:].reshape(ds.xdim, 1)).flatten()
+    ds.state0 = ds.eq[ds.x_ptr,:].flatten()
 
 def keyin(event, ds):
     if event.key == 'q':
@@ -125,9 +135,30 @@ def keyin(event, ds):
         state_reset(ds)
     elif event.key == 'x':
         ds.ax.cla()
-        redraw(ds)
         eq_change(ds)
+        redraw(ds)
+    elif event.key == 'c':
+        ds.dim_ptr += 1
+        if(ds.dim_ptr >= 2):
+            ds.dim_ptr = 0
+        if(ds.dim_ptr <= 0):
+            print("change on_click dimension to theta_1, theta_1 dot")
+        elif(ds.dim_ptr >= 1):
+            print("change on_click dimension to theta_2, theta_2 dot")
+    elif event.key == 'p':
+        # change parameter
+        print("change parameter")
 
+
+def show_params(ds):
+    s = ""
+    p = ""
+    params = ds_func.sp2np(ds.params).flatten().tolist()
+    x0 = ds.state0.flatten().tolist()
+    for i in range(len(params)):
+        s += f"x{i}:{x0[i]:.5f},"
+        p += f"p{i}:{params[i]:.4f},"
+    plt.title(s+"\n"+p, color = 'blue')
 
 if __name__ == '__main__':
     main()

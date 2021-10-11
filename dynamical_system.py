@@ -55,6 +55,8 @@ class DynamicalSystem:
     state0 = []
     eq = []
     x_ptr = 0
+    dim_ptr = 0
+
     def __init__(self, json):
         self.x0 = sp.Matrix(json['x0'])
         self.params = sp.Matrix(json['params'])

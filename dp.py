@@ -1,12 +1,12 @@
 import sys
+import json
+import dynamical_system
+import ds_func
 import numpy as np
 import sympy as sp
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 from sympy import sin,cos
-import json
-import dynamical_system
-import ds_func
 
 def main():
     # load data from json file
