@@ -7,11 +7,12 @@ import sympy as sp
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 from sympy import sin,cos
+from scipy import linalg
 
 def main():
     # load data from json file
-    if len(sys.argv) != 3:
-        print(f"Usage: python {sys.argv[0]} filename filename")
+    if len(sys.argv) != 2:
+        print(f"Usage: python {sys.argv[0]} filename")
         sys.exit(0)
     fd = open(sys.argv[1], 'r')
     json_data = json.load(fd)
@@ -20,13 +21,68 @@ def main():
     ds = dynamical_system.DynamicalSystem(json_data)
 
     eq = ds_func.equilibrium(ds)
-    eig = ds_func.eigen(eq, ds)
+    ds.x0 = ds_func.sp2np(eq[2,:])
+    print("x0\n",ds.x0)
+    eig,eig_vl,eig_vr = ds_func.eigen(eq, ds, 2)
+    print(eig)
+    ds.mu_alpha = eig[0]
+    ds.mu_omega = eig[1]
+    print("mu_alphaに対する固有ベクトル",eig_vr[:,0])
+    print("mu_omegaに対する固有ベクトル",eig_vr[:,1])
+    delta_alpha = eig_vr[:,0] * ds.delta
+    delta_omega = eig_vr[:,1] * ds.delta
+    print("delta_alpha", delta_alpha)
+    x_alpha = ds.x0 + delta_alpha
+    x_omega = ds.x0 + delta_omega
 
-    # write equilibrium points to json file
-    fp = open(sys.argv[2], 'w')
-    l = sp.matrix2numpy(eq, dtype=np.float64).tolist()
-    fp.write(json.dumps(l, indent = 4))
-    fp.close()
+    ds.x_alpha = x_alpha
+    ds.x_omega = x_omega
+
+    '''
+    ##### for all eqpoints#####
+    for i in range(ds.xdim):
+        delta_vec = eig_vr[:,i] * ds.delta
+        x_alpha = np_eq + delta_vec
+    '''
+    print("x_alpha\n",x_alpha)
+    print("x_omega\n",x_omega)
     
+    test = F(ds)
+    print("条件式テスト",test)
+
+
+def F(ds):
+    F = sp.Matrix([
+        # dfdx(x0,lambda0, - mu_alpha I)(x_alpha - x0)
+        (ds.dFdx.subs([(ds.sym_x, ds.x0.T), (ds.sym_p, ds.params)]) - ds.mu_alpha * np.eye(ds.xdim))
+        @ (ds.x_alpha - ds.x0).T,
+        # dfdx(x0,lambda0, - mu_omegaI)(x_omega- x0)
+        (ds.dFdx.subs([(ds.sym_x, ds.x0.T), (ds.sym_p, ds.params)]) - ds.mu_omega * np.eye(ds.xdim))
+        @ (ds.x_omega - ds.x0).T,
+        # (x_alpha - x0)(x_alpha - x0)^T - delta^2 = 0
+        (ds.x_alpha - ds.x0) @ (ds.x_alpha - ds.x0).T - ds.delta * ds.delta ,
+        # (x_omega- x0)(x_omega - x0)^T - delta^2 = 0
+        (ds.x_omega - ds.x0) @ (ds.x_omega - ds.x0).T - ds.delta * ds.delta
+        # phi(xalpha,lambda0, tau) - phi(xomega, lambda0,-tau) = 0
+    ])
+    return F
+
+def eigtest(ds):
+    a = np.array([[3,3],
+                  [5,1]])
+    print(a)
+    print(a.shape)
+    eig_test = linalg.eigvals(a)
+    print("固有値テスト", eig_test)
+    eig_vr = linalg.eig(a,left = False,right = True)[1]
+    print("右固有ベクトル\n",eig_vr)
+    eig_vl = linalg.eig(a,left = True,right = False)[1]
+    print("左固有ベクトル\n",eig_vl)
+    print(eig_vr[:,0])
+    dot = eig_vr[:,0] @ eig_vl[:,1]
+    print("内積\n", dot)
+
+    
+
 if __name__ == '__main__':
     main()

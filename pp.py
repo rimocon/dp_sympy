@@ -6,6 +6,7 @@ import numpy as np
 import sympy as sp
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 # from sympy import sin,cos
 from numpy import sin,cos
 
@@ -148,7 +149,13 @@ def keyin(event, ds):
     elif event.key == 'p':
         # change parameter
         print("change parameter")
-
+    elif event.key == 's':
+        print("now writing...")
+        pdf = PdfPages('snapshot.pdf')
+        pdf.savefig()
+        pdf.close()
+        print("done.")
+    
 
 def show_params(ds):
     s = ""

@@ -37,37 +37,24 @@ def map(x, p, c):
 
 
 class DynamicalSystem:
-    x0 = []
-    params = []
-    const = []
-    xdim = 0
-    
-    sym_x = 0
-    sym_p = 0
-    dFdx = []
-
-    # for pp
-    running = None
-    fig = None
-    ax = None
-    xrange = []
-    yrange = []
-    state0 = []
-    eq = []
-    x_ptr = 0
-    dim_ptr = 0
 
     def __init__(self, json):
         self.x0 = sp.Matrix(json['x0'])
         self.params = sp.Matrix(json['params'])
         self.const = sp.Matrix([json['const']])
         self.xdim = json['xdim']
+        self.delta = json['delta']
 
+        self.x_alpha = np.array([0,0,0,0])
+        self.x_omega = np.array([0,0,0,0])
+        self.mu_alpha = 0
+        self.mu_omega = 0
         self.sym_x = sp.MatrixSymbol('x', self.xdim, 1)
         self.sym_p = sp.MatrixSymbol('p', sp.shape(self.params)[0],1)
         self.F = map(self.sym_x, self.sym_p, self.const)
         self.dFdx = self.F.jacobian(self.sym_x)
-
+        
+        # for pp
         self.fig = plt.figure(figsize = (8, 8))
         self.ax = self.fig.add_subplot(111)
         self.running = True
