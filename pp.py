@@ -61,7 +61,7 @@ def main():
     # input data to constructor
     ds = dynamical_system.DynamicalSystem(json_data)
     # calculate equilibrium points
-    eq= ds_func.equilibrium(ds)
+    eq = ds_func.equilibrium(ds)
     # convert to numpy
     ds.eq = ds_func.sp2np(eq)
     ds.state0 = ds.eq[0,:].flatten()
@@ -82,9 +82,9 @@ def main():
         ds.ax.plot(state.y[0,:], state.y[1,:],
                 linewidth=1, color=(0.1, 0.1, 0.3),
                 ls="-")
-        ds.ax.plot(state.y[2,:], state.y[3,:],
-                linewidth=1, color=(0.3, 0.1, 0.1),
-                ls="-")
+        #ds.ax.plot(state.y[2,:], state.y[3,:],
+         #       linewidth=1, color=(0.3, 0.1, 0.1),
+         #       ls="-")
         ds.state0 = state.y[:, -1]
         plt.pause(0.001)  # REQIRED
 
