@@ -111,10 +111,13 @@ def keyin(event, ds):
         if(ds.x_ptr >= ds.xdim):
             ds.x_ptr = 0
         ds.state0 = ds.eq[ds.x_ptr,:].flatten()
-        
+        print("change eq point")       
         print(ds.state0)
+
         solver(ds)
-        plt.show()
+        locus(ds)
+        ds.ani.new_frame_seq()
+        # plt.show()
         
         
     #     ds.ax.cla()
