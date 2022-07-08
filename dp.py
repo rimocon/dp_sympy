@@ -17,6 +17,7 @@ def main():
     fd = open(sys.argv[1], 'r')
     json_data = json.load(fd)
     fd.close()
+
     # input data to constructor
     ds = dynamical_system.DynamicalSystem(json_data)
 
@@ -37,6 +38,7 @@ def main():
 
     ds.x_alpha = x_alpha
     ds.x_omega = x_omega
+    
 
     '''
     ##### for all eqpoints#####
@@ -46,17 +48,19 @@ def main():
     '''
     print("x_alpha\n",x_alpha)
     print("x_omega\n",x_omega)
-    
-    test = F(ds)
-    print("条件式テスト",test)
+
+    test = Condition(ds)
+    # print("条件式テスト",test)
+    jac_test = jac(ds)
+    # print("ヤコビアンテスト",jac_test)
 
 
-def F(ds):
+def Condition(ds):
     F = sp.Matrix([
-        # dfdx(x0,lambda0, - mu_alpha I)(x_alpha - x0)
+        # (dfdx(x0,lambda0) - mu_alpha I)(x_alpha - x0)
         (ds.dFdx.subs([(ds.sym_x, ds.x0.T), (ds.sym_p, ds.params)]) - ds.mu_alpha * np.eye(ds.xdim))
         @ (ds.x_alpha - ds.x0).T,
-        # dfdx(x0,lambda0, - mu_omegaI)(x_omega- x0)
+        # (dfdx(x0,lambda0) - mu_omegaI)(x_omega- x0)
         (ds.dFdx.subs([(ds.sym_x, ds.x0.T), (ds.sym_p, ds.params)]) - ds.mu_omega * np.eye(ds.xdim))
         @ (ds.x_omega - ds.x0).T,
         # (x_alpha - x0)(x_alpha - x0)^T - delta^2 = 0
@@ -64,23 +68,30 @@ def F(ds):
         # (x_omega- x0)(x_omega - x0)^T - delta^2 = 0
         (ds.x_omega - ds.x0) @ (ds.x_omega - ds.x0).T - ds.delta * ds.delta
         # phi(xalpha,lambda0, tau) - phi(xomega, lambda0,-tau) = 0
+
     ])
     return F
+def jac(ds):
+    F = Condition(ds)
+    J = F.jacobian(ds.sym_x)
+    return J
 
-def eigtest(ds):
-    a = np.array([[3,3],
-                  [5,1]])
-    print(a)
-    print(a.shape)
-    eig_test = linalg.eigvals(a)
-    print("固有値テスト", eig_test)
-    eig_vr = linalg.eig(a,left = False,right = True)[1]
-    print("右固有ベクトル\n",eig_vr)
-    eig_vl = linalg.eig(a,left = True,right = False)[1]
-    print("左固有ベクトル\n",eig_vl)
-    print(eig_vr[:,0])
-    dot = eig_vr[:,0] @ eig_vl[:,1]
-    print("内積\n", dot)
+
+
+# def eigtest(ds):
+#     a = np.array([[3,3],
+#                   [5,1]])
+#     print(a)
+#     print(a.shape)
+#     eig_test = linalg.eigvals(a)
+#     print("固有値テスト", eig_test)
+#     eig_vr = linalg.eig(a,left = False,right = True)[1]
+#     print("右固有ベクトル\n",eig_vr)
+#     eig_vl = linalg.eig(a,left = True,right = False)[1]
+#     print("左固有ベクトル\n",eig_vl)
+#     print(eig_vr[:,0])
+#     dot = eig_vr[:,0] @ eig_vl[:,1]
+#     print("内積\n", dot)
 
     
 

@@ -10,6 +10,33 @@ from matplotlib.backends.backend_pdf import PdfPages
 # from sympy import sin,cos
 from numpy import sin,cos
 
+# プロット用設定
+plt.rcParams["font.family"] = "Nimbus Roman"    #全体のフォントを設定
+plt.rcParams['text.usetex'] = True              #描画にTeXを利用
+plt.rcParams['text.latex.preamble'] = r'''\usepackage{amsmath}
+                                          \usepackage{amssymb}
+                                          \usepackage[T1]{fontenc}
+                                          \usepackage{bm}
+                                          '''
+plt.rcParams["figure.autolayout"] = False       #レイアウト自動調整をするかどうか
+plt.rcParams["font.size"] = 22                  #フォントの大きさ
+plt.rcParams["xtick.direction"] = "in"          #x軸の目盛線を内向きへ
+plt.rcParams["ytick.direction"] = "in"          #y軸の目盛線を内向きへ
+# plt.rcParams["xtick.minor.visible"] = True      #x軸補助目盛りの追加
+# plt.rcParams["ytick.minor.visible"] = True      #y軸補助目盛りの追加
+plt.rcParams["xtick.major.width"] = 1.0         #x軸主目盛り線の線幅
+plt.rcParams["ytick.major.width"] = 1.0         #y軸主目盛り線の線幅
+plt.rcParams["xtick.minor.width"] = 0.5         #x軸補助目盛り線の線幅
+plt.rcParams["ytick.minor.width"] = 0.5         #y軸補助目盛り線の線幅
+plt.rcParams["xtick.major.size"] = 20           #x軸主目盛り線の長さ
+plt.rcParams["ytick.major.size"] = 20          #y軸主目盛り線の長さ
+plt.rcParams["xtick.minor.size"] = 10            #x軸補助目盛り線の長さ
+plt.rcParams["ytick.minor.size"] = 10            #y軸補助目盛り線の長さ
+plt.rcParams["xtick.major.pad"] = 14             #x軸と目盛数値のマージン
+plt.rcParams["ytick.major.pad"] = 14             #y軸と目盛数値のマージン
+plt.rcParams["axes.linewidth"] = 2            #囲みの太さ
+
+
 
 '''
 # if use sympy matrix
@@ -79,12 +106,12 @@ def main():
             method='RK45', args = (p, c), max_step=tick,
             rtol=1e-12, vectorized = True) 
         
-        ds.ax.plot(state.y[0,:], state.y[1,:],
-                linewidth=1, color=(0.1, 0.1, 0.3),
+        # ds.ax.plot(state.y[0,:], state.y[1,:],
+                # linewidth=1, color=(0.1, 0.1, 0.3),
+               # ls="-")
+        ds.ax.plot(state.y[2,:], state.y[3,:],
+                linewidth=1, color=(0.3, 0.1, 0.1),
                 ls="-")
-        #ds.ax.plot(state.y[2,:], state.y[3,:],
-         #       linewidth=1, color=(0.3, 0.1, 0.1),
-         #       ls="-")
         ds.state0 = state.y[:, -1]
         plt.pause(0.001)  # REQIRED
 
@@ -100,7 +127,10 @@ def redraw(ds):
     ds.ax.set_xlim(ds.xrange)
     ds.ax.set_ylim(ds.yrange)
     ds.ax.grid(c='gainsboro', ls='--', zorder=9)
-
+    #ds.ax.set_xlabel(r"$\theta_{1}$")
+    ds.ax.set_xlabel(r"$\theta_{2}$")
+    #ds.ax.set_ylabel(r"$\dot{\theta_{1}}$")
+    ds.ax.set_ylabel(r"$\dot{\theta_{2}}$")
 def eq_change(ds):
     ds.x_ptr += 1
     if(ds.x_ptr >= ds.xdim):
@@ -165,7 +195,7 @@ def show_params(ds):
     for i in range(len(params)):
         s += f"x{i}:{x0[i]:.5f},"
         p += f"p{i}:{params[i]:.4f},"
-    plt.title(s+"\n"+p, color = 'blue')
+    #plt.title(s+"\n"+p, color = 'blue')
 
 if __name__ == '__main__':
     main()
