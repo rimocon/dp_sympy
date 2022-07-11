@@ -60,4 +60,7 @@ class DynamicalSystem:
         self.running = True
         self.xrange = json['xrange']
         self.yrange = json['yrange']
+        self.x_ptr = 0
+        self.dim_ptr = 0
+        self.p_ptr = 0
         

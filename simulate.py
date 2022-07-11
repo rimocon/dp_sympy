@@ -7,7 +7,6 @@ from numpy import sin, cos
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-from collections import deque
 
 # プロット用設定
 plt.rcParams["font.family"] = "Nimbus Roman"    #全体のフォントを設定
@@ -72,62 +71,32 @@ def solver(ds):
         method='RK45', args = (ds.p, ds.c), max_step=ds.tick,
         rtol=1e-12, vectorized = True)
 
-def animate(i):
-    thisx = [0, ds.x1[i], ds.x2[i]]
-    thisy = [0, ds.y1[i], ds.y2[i]]
+def animate(data):
+    t, x1, y1, x2, y2 = data
+    ds.xlocus.append(x2)
+    ds.ylocus.append(y2)
 
-    if i == 0:
-        ds.history_x.clear()
-        ds.history_y.clear()
-
-    ds.history_x.appendleft(thisx[2])
-    ds.history_y.appendleft(thisy[2])
-
-    ds.line.set_data(thisx, thisy)
-    ds.trace.set_data(ds.history_x, ds.history_y)
-    ds.time_text.set_text(ds.time_template % (i*ds.tick))
-    return ds.line, ds.trace, ds.time_text
+    ds.locus.set_data(ds.xlocus, ds.ylocus)
+    ds.line.set_data([0, x1, x2], [0, y1, y2])
+    ds.time_text.set_text(ds.time_template % (t))
 
 # generator
 def gen(ds):
-    ds.x1 = ds.c[0] * cos(ds.state.y[0,:])
-    ds.y1 = ds.c[0] * sin(ds.state.y[0,:])
-    ds.x2 = ds.x1 + ds.c[1] * cos(ds.state.y[0,:] + ds.state.y[2,:])
-    ds.y2 = ds.y1 + ds.c[1] * sin(ds.state.y[0,:] + ds.state.y[2,:])
+    for tt, th1, th2 in zip(ds.state.t,ds.state.y[0,:], ds.state.y[2,:]):
+        x1 = ds.c[0] * cos(th1)
+        y1 = ds.c[0] * sin(th1)
+        x2 = x1 + ds.c[1] * cos(th1 + th2)
+        y2 = y1 + ds.c[1] * sin(th1 + th2)
+        yield tt, x1, y1, x2, y2
 
 def set(ds):
-    # input data to constructor
-    eq = ds_func.equilibrium(ds)
-    # convert to numpy
-    ds.eq = ds_func.sp2np(eq)
-    ds.state0 = ds.eq[ds.x_ptr,:].flatten()
-
-    # import numpy parameter
-    ds.p = ds_func.sp2np(ds.params).flatten()
-
-    # import numpy constant
-    ds.c = ds_func.sp2np(ds.const).flatten()
-
-
     ds.ax.set_xlim(-(ds.c[0]+ds.c[1]),ds.c[0]+ds.c[1])
     ds.ax.set_ylim(-(ds.c[0]+ds.c[1]),ds.c[0]+ds.c[1])
     ds.ax.set_xticks([-(ds.c[0]+ds.c[1]),-(ds.c[0]+ds.c[1])/2, 0, (ds.c[0]+ds.c[1])/2, ds.c[0]+ds.c[1]])
     ds.ax.set_yticks([-(ds.c[0]+ds.c[1]),-(ds.c[0]+ds.c[1])/2, 0, (ds.c[0]+ds.c[1])/2, ds.c[0]+ds.c[1]])
     ds.ax.set_aspect('equal')
-    s = ""
-    eq= ""
-    cnt = 0
-    for key in ds.p:
-        s += " p{:d}: {:.4f}  ".format(cnt, key)
-        cnt += 1
-    cnt = 0
-    for key in ds.state0:
-        eq += " eq{:d}: {:.4f}  ".format(cnt, key)
-        cnt += 1
-    title = s + "\n" + eq
-    plt.title(title, color='b')
     ds.ax.grid()
-    
+
 def keyin(event, ds):
     if event.key == 'q':
         plt.cla()
@@ -137,55 +106,37 @@ def keyin(event, ds):
     elif event.key == 'x':
         print("xxxxxxxxxxxx")
         plt.cla()
+        set(ds)
         ds.x_ptr += 1
         if(ds.x_ptr >= ds.xdim):
             ds.x_ptr = 0
-        set(ds)
-        solver(ds)
-        gen(ds)
-        locus(ds)
-        ds.ani.new_frame_seq()
-        plt.show()
+        ds.state0 = ds.eq[ds.x_ptr,:].flatten()
+        print("change eq point")       
+        print(ds.state0)
 
-    elif event.key == 'p':
-        print("ppppppppp") 
-        ds.p_ptr += 1
-        if(ds.p_ptr >= 4):
-            ds.p_ptr = 0
-        print(f"changable paramter: {ds.p_ptr}")
-
-    elif event.key == 'up':
-        plt.cla()
-        print(f"change paramter[{ds.p_ptr}]")
-        print(f"before value:{ds.params[ds.p_ptr]}")
-        ds.params[ds.p_ptr] += 0.01
-        print(f"after value:{ds.params[ds.p_ptr]}")
-        set(ds)
-        locus(ds)
         solver(ds)
-        gen(ds)
-        ds.ani.new_frame_seq()
-        plt.show()
-    elif event.key == 'down':
-        plt.cla()
-        print(f"change paramter[{ds.p_ptr}]")
-        print(f"before value:{ds.params[ds.p_ptr]}")
-        ds.params[ds.p_ptr] -= 0.01
-        print(f"after value:{ds.params[ds.p_ptr]}")
-        set(ds)
         locus(ds)
-        solver(ds)
-        gen(ds)
         ds.ani.new_frame_seq()
-        plt.show()
+        # plt.show()
+        
+        
+    #     ds.ax.cla()
+    #     eq_change(ds)
+    #     redraw(ds)
+    # #  elif event.key == 'p':
+    #      # change parameter
+    #      print("change parameter")
+    #  elif event.key == 's':
+    #     ds.ani.save('double_pendulum.gif', writer='pillow', fps=15)
 
 def locus(ds):
 
-    ds.line, = ds.ax.plot([], [], 'o-', lw=2)
-    ds.trace, = ds.ax.plot([], [], '.-', lw=1, ms=2)
+    ds.locus, = ds.ax.plot([], [], 'r-', linewidth=2)
+    ds.line, = ds.ax.plot([], [], 'o-', linewidth=2)
     ds.time_template = 'time = %.1fs'
-    ds.time_text = ds.ax.text(0.05, 0.9, '', transform=ds.ax.transAxes)
-    ds.history_x, ds.history_y = deque(maxlen=ds.history_len), deque(maxlen=ds.history_len)
+    ds.time_text = ds.ax.text(0.05, 0.9, '', transform = ds.ax.transAxes)
+
+    ds.xlocus, ds.ylocus = [], []
 
 # load data from json file
 if len(sys.argv) != 2:
@@ -196,23 +147,29 @@ fd.close()
 
 ds = dynamical_system.DynamicalSystem(json_data)
 ds.x_ptr = 3
-ds.p_ptr = 3
+# input data to constructor
+eq = ds_func.equilibrium(ds)
+
+# convert to numpy
+ds.eq = ds_func.sp2np(eq)
+ds.state0 = ds.eq[ds.x_ptr,:].flatten()
+
+# calculate orbit
 ds.duration = 10
 ds.tick = 0.05
-ds.history_len = 500
 
+# import numpy parameter
+ds.p = ds_func.sp2np(ds.params).flatten()
 
+# import numpy constant
+ds.c = ds_func.sp2np(ds.const).flatten()
 
-
-
-set(ds)
-# calculate orbit
 solver(ds)
 # graph
 plt.connect('key_press_event',
     lambda event: keyin(event, ds))
+set(ds)
 locus(ds)
-gen(ds)
-ds.ani = FuncAnimation(ds.fig, animate, len(ds.state.y[0,:]),interval=ds.tick * 1000,blit = True, repeat = False)
+ds.ani = FuncAnimation(ds.fig, animate, gen(ds),interval=50)
     # ani.save('double_pendulum.gif', writer='pillow', fps=15)
 plt.show()

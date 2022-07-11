@@ -91,9 +91,9 @@ def main():
     eq = ds_func.equilibrium(ds)
     # convert to numpy
     ds.eq = ds_func.sp2np(eq)
-    ds.state0 = ds.eq[0,:].flatten()
+    ds.state0 = ds.eq[3,:].flatten()
     # calculate orbit
-    duration = 0.5
+    duration = 30
     tick = 0.05
     matplotinit(ds)
     # import numpy parameter
@@ -106,12 +106,12 @@ def main():
             method='RK45', args = (p, c), max_step=tick,
             rtol=1e-12, vectorized = True) 
         
-        # ds.ax.plot(state.y[0,:], state.y[1,:],
-                # linewidth=1, color=(0.1, 0.1, 0.3),
-               # ls="-")
-        ds.ax.plot(state.y[2,:], state.y[3,:],
-                linewidth=1, color=(0.3, 0.1, 0.1),
-                ls="-")
+        ds.ax.plot(state.y[0,:], state.y[1,:],
+                linewidth=1, color=(0.1, 0.1, 0.3),
+               ls="-")
+        # ds.ax.plot(state.y[2,:], state.y[3,:],
+        #         linewidth=1, color=(0.3, 0.1, 0.1),
+        #         ls="-")
         ds.state0 = state.y[:, -1]
         plt.pause(0.001)  # REQIRED
 
@@ -127,10 +127,11 @@ def redraw(ds):
     ds.ax.set_xlim(ds.xrange)
     ds.ax.set_ylim(ds.yrange)
     ds.ax.grid(c='gainsboro', ls='--', zorder=9)
-    #ds.ax.set_xlabel(r"$\theta_{1}$")
-    ds.ax.set_xlabel(r"$\theta_{2}$")
-    #ds.ax.set_ylabel(r"$\dot{\theta_{1}}$")
-    ds.ax.set_ylabel(r"$\dot{\theta_{2}}$")
+    ds.ax.set_xlabel(r"$\theta_{1}$")
+    # ds.ax.set_xlabel(r"$\theta_{2}$")
+    ds.ax.set_ylabel(r"$\dot{\theta_{1}}$")
+    # ds.ax.set_ylabel(r"$\dot{\theta_{2}}$")
+    
 def eq_change(ds):
     ds.x_ptr += 1
     if(ds.x_ptr >= ds.xdim):
