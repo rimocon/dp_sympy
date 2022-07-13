@@ -63,4 +63,5 @@ class DynamicalSystem:
         self.x_ptr = 0
         self.dim_ptr = 0
         self.p_ptr = 0
+        self.d = 0.01
         

@@ -124,6 +124,7 @@ def set(ds):
     for key in ds.state0:
         eq += f"x{cnt:d}0 {key:.4f} "
         cnt += 1
+    cnt = 0
     title = s + "\n" + eq
     plt.title(title, color='b')
     ds.ax.grid()
@@ -156,7 +157,7 @@ def keyin(event, ds):
         plt.cla()
         print(f"change paramter[{ds.p_ptr}]")
         print(f"before value:{ds.params[ds.p_ptr]}")
-        ds.params[ds.p_ptr] += 0.01
+        ds.params[ds.p_ptr] += ds.d
         print(f"after value:{ds.params[ds.p_ptr]}")
         set(ds)
         locus(ds)
@@ -167,7 +168,7 @@ def keyin(event, ds):
         plt.cla()
         print(f"change paramter[{ds.p_ptr}]")
         print(f"before value:{ds.params[ds.p_ptr]}")
-        ds.params[ds.p_ptr] -= 0.01
+        ds.params[ds.p_ptr] -= ds.d
         print(f"after value:{ds.params[ds.p_ptr]}")
         set(ds)
         locus(ds)
@@ -182,9 +183,14 @@ def keyin(event, ds):
         solver(ds)
         gen(ds)
         ds.ani.frame_seq = ds.ani.new_frame_seq()
-
+    elif event.key == 'right':
+        ds.d = ds.d * 10
+        print("change increment/decrement scale:",ds.d)
+        
     
-       
+    elif event.key == 'left':
+        ds.d = ds.d / 10
+        print("change increment/decrement scale:",ds.d)
    
        
        
@@ -216,7 +222,7 @@ fd.close()
 ds = dynamical_system.DynamicalSystem(json_data)
 ds.x_ptr = 3
 ds.p_ptr = 0
-ds.duration = 20
+ds.duration = 40
 ds.tick = 0.01
 ds.eval = np.arange(0, ds.duration, ds.tick)
 ds.history_len = 500
