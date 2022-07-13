@@ -16,6 +16,7 @@ plt.rcParams['text.latex.preamble'] = r'''\usepackage{amsmath}
                                           \usepackage{amssymb}
                                           \usepackage[T1]{fontenc}
                                           \usepackage{bm}
+                                          \usepackage{xcolor}
                                           '''
 plt.rcParams["figure.autolayout"] = False       #レイアウト自動調整をするかどうか
 plt.rcParams["font.size"] = 24                  #フォントの大きさ
@@ -117,11 +118,11 @@ def set(ds):
     eq= ""
     cnt = 0
     for key in ds.p:
-        s += " p{:d}: {:.4f}  ".format(cnt, key)
+        s += f"p{cnt:d} {key:.4f} "
         cnt += 1
     cnt = 0
     for key in ds.state0:
-        eq += " x{:d}0: {:.4f}  ".format(cnt, key)
+        eq += f"x{cnt:d}0 {key:.4f} "
         cnt += 1
     title = s + "\n" + eq
     plt.title(title, color='b')
@@ -214,7 +215,7 @@ fd.close()
 
 ds = dynamical_system.DynamicalSystem(json_data)
 ds.x_ptr = 3
-ds.p_ptr = 3
+ds.p_ptr = 0
 ds.duration = 20
 ds.tick = 0.01
 ds.eval = np.arange(0, ds.duration, ds.tick)
