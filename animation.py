@@ -68,8 +68,8 @@ def func(t, x, p, c):
 
 def solver(ds):
     # solver
-    ds.state = solve_ivp(func, (0, ds.duration), ds.state0,
-        method='RK45', args = (ds.p, ds.c), max_step=ds.tick,
+    ds.state = solve_ivp(func, (0, ds.duration), ds.state0, 
+        method='RK45', t_eval = ds.eval, args = (ds.p, ds.c), 
         rtol=1e-12, vectorized = True)
 
 def animate(i):
@@ -79,13 +79,12 @@ def animate(i):
     if i == 0:
         ds.history_x.clear()
         ds.history_y.clear()
-
     ds.history_x.appendleft(thisx[2])
     ds.history_y.appendleft(thisy[2])
 
     ds.line.set_data(thisx, thisy)
     ds.trace.set_data(ds.history_x, ds.history_y)
-    ds.time_text.set_text(ds.time_template % (i*ds.tick))
+    ds.time_text.set_text(ds.time_template % (ds.state.t[i]))
     return ds.line, ds.trace, ds.time_text
 
 # generator
@@ -108,7 +107,7 @@ def set(ds):
     # import numpy constant
     ds.c = ds_func.sp2np(ds.const).flatten()
 
-
+   
     ds.ax.set_xlim(-(ds.c[0]+ds.c[1]),ds.c[0]+ds.c[1])
     ds.ax.set_ylim(-(ds.c[0]+ds.c[1]),ds.c[0]+ds.c[1])
     ds.ax.set_xticks([-(ds.c[0]+ds.c[1]),-(ds.c[0]+ds.c[1])/2, 0, (ds.c[0]+ds.c[1])/2, ds.c[0]+ds.c[1]])
@@ -122,7 +121,7 @@ def set(ds):
         cnt += 1
     cnt = 0
     for key in ds.state0:
-        eq += " eq{:d}: {:.4f}  ".format(cnt, key)
+        eq += " x{:d}0: {:.4f}  ".format(cnt, key)
         cnt += 1
     title = s + "\n" + eq
     plt.title(title, color='b')
@@ -135,20 +134,18 @@ def keyin(event, ds):
         print("quit")
         sys.exit()
     elif event.key == 'x':
-        print("xxxxxxxxxxxx")
         plt.cla()
         ds.x_ptr += 1
         if(ds.x_ptr >= ds.xdim):
             ds.x_ptr = 0
         set(ds)
+        locus(ds)
         solver(ds)
         gen(ds)
-        locus(ds)
-        ds.ani.new_frame_seq()
+        ds.ani.frame_seq = ds.ani.new_frame_seq()
         plt.show()
 
     elif event.key == 'p':
-        print("ppppppppp") 
         ds.p_ptr += 1
         if(ds.p_ptr >= 4):
             ds.p_ptr = 0
@@ -164,8 +161,7 @@ def keyin(event, ds):
         locus(ds)
         solver(ds)
         gen(ds)
-        ds.ani.new_frame_seq()
-        plt.show()
+        ds.ani.frame_seq = ds.ani.new_frame_seq()
     elif event.key == 'down':
         plt.cla()
         print(f"change paramter[{ds.p_ptr}]")
@@ -176,8 +172,30 @@ def keyin(event, ds):
         locus(ds)
         solver(ds)
         gen(ds)
-        ds.ani.new_frame_seq()
-        plt.show()
+        ds.ani.frame_seq = ds.ani.new_frame_seq()
+    elif event.key == ' ':
+        print("redraw")
+        plt.cla()
+        set(ds)
+        locus(ds)
+        solver(ds)
+        gen(ds)
+        ds.ani.frame_seq = ds.ani.new_frame_seq()
+
+    
+       
+   
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
 
 def locus(ds):
 
@@ -197,12 +215,10 @@ fd.close()
 ds = dynamical_system.DynamicalSystem(json_data)
 ds.x_ptr = 3
 ds.p_ptr = 3
-ds.duration = 10
-ds.tick = 0.05
+ds.duration = 20
+ds.tick = 0.01
+ds.eval = np.arange(0, ds.duration, ds.tick)
 ds.history_len = 500
-
-
-
 
 
 set(ds)
@@ -213,6 +229,6 @@ plt.connect('key_press_event',
     lambda event: keyin(event, ds))
 locus(ds)
 gen(ds)
-ds.ani = FuncAnimation(ds.fig, animate, len(ds.state.y[0,:]),interval=ds.tick * 1000,blit = True, repeat = False)
+ds.ani = FuncAnimation(ds.fig, animate, len(ds.state.t), interval=ds.tick * 1000,blit = True, repeat = False)
     # ani.save('double_pendulum.gif', writer='pillow', fps=15)
 plt.show()
