@@ -15,6 +15,7 @@
 * sympy
 * numpy
 * scipy
+* matplotlib
 
 ## Usage
 
