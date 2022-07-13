@@ -4,13 +4,13 @@ from scipy import linalg
 
 def equilibrium(ds):
     theta_1 = sp.acos((ds.params[2] - ds.params[3]) / ((ds.const[0] + ds.const[1]) * ds.const[2] * ds.const[4]))
-    theta_2 = sp.acos(ds.params[3] / (ds.const[1] * ds.const[3] * ds.const[4])) - theta_1
+    theta_2 = sp.acos(ds.params[3] / (ds.const[1] * ds.const[3] * ds.const[4]))
 
     eqpoints = sp.Matrix([
-        [theta_1, 0, -theta_2, 0],
-        [-theta_1, 0, -2 * theta_1 + theta_2, 0],
-        [theta_1, 0, 2 * theta_1 - theta_2, 0],
-        [-theta_1, 0, theta_2, 0]
+        [theta_1, 0, theta_2 - theta_1, 0],
+        [-theta_1, 0, theta_2 + theta_1, 0],
+        [theta_1, 0, -theta_2 - theta_1, 0],
+        [-theta_1, 0, -theta_2 + theta_1, 0]
     ])
     return eqpoints
 
