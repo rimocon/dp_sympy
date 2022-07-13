@@ -1,12 +1,13 @@
 # dp_sympy
-I hope to develop this repos as a bifurcation analysis tool for complex dynamical systems using sympy (Original:[aw02m](https://github.com/aw02m/discrete_bif_sympy)).
+2リンクマニピュレータの分岐計算プログラム用に使えそうなパッケージを色々と作っています.
 
+個人用に作っているので非常にコードが汚いですがご了承ください
 
-So far, The Jacobi matrix of the system, the equilibrium points, and their eigenvalues and eigenvectors can be calculated.
-
-
-However, there may be some problems in terms of calculation speed and accuracy.
-
+dp.py(未完成):分岐計算プログラム
+pp.py(ほぼ完成):位相図プログラム
+animation.py(ほぼ完成):シミュレーションプログラム
+dynamical_system.py:システム構造
+input.json:入力ファイル
 ***
 
 ## Requirements
@@ -17,7 +18,26 @@ However, there may be some problems in terms of calculation speed and accuracy.
 
 ## Usage
 
-```python dp.py in.json eq.json```
+```python3 *.py in.json ```
 
 ```in.json:``` input files
-```eq.json``` output files
+
+
+
+## アニメーションプログラム使い方
+
+このプログラムでは平衡点を初期値とし，軌道をアニメーション化しています．
+
+現在のところ平衡点以外を初期値にはできないので注意してください．
+
+
+
+- `p`: 変更するパラメータを変える
+- `&#8593/&#8595`: パラメータを増やす,また減らす
+- `space`: もう一度最初から描画，この時パラメータセットはそのままです
+- `x`: 平衡点を変更します．この系では4つの平衡点があります
+- `q`: quit
+
+初期パラメータを変更したい場合は`in.json`の`params`を変更してください．
+
+上から順にk1,\tau 1,k2,\tau 2です．
