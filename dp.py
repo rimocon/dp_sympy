@@ -1,5 +1,6 @@
 import sys
 import json
+from this import d
 import dynamical_system
 import ds_func
 import numpy as np
@@ -22,12 +23,21 @@ def main():
     ds = dynamical_system.DynamicalSystem(json_data)
 
     eq = ds_func.equilibrium(ds)
-    ds.x0 = ds_func.sp2np(eq[2,:])
+    ds.x0 = ds_func.sp2np(eq)
     print("x0\n",ds.x0)
-    eig,eig_vl,eig_vr = ds_func.eigen(eq, ds, 2)
-    print(eig)
+    '''
+    for i in range(4):
+        eig,eig_vl,eig_vr = ds_func.eigen(eq, ds, i)
+        ds.mu_alpha = eig[0]
+        ds.mu_omega = eig[1]
+
+        print("eigenvalue\n", eig)
+    '''
+    eig,eig_vl,eig_vr = ds_func.eigen(eq, ds, 0)
     ds.mu_alpha = eig[0]
     ds.mu_omega = eig[1]
+
+
     print("mu_alphaに対する固有ベクトル",eig_vr[:,0])
     print("mu_omegaに対する固有ベクトル",eig_vr[:,1])
     delta_alpha = eig_vr[:,0] * ds.delta

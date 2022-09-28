@@ -91,10 +91,10 @@ def main():
     eq = ds_func.equilibrium(ds)
     # convert to numpy
     ds.eq = ds_func.sp2np(eq)
-    ds.state0 = ds.eq[3,:].flatten()
+    ds.state0 = ds.eq[1,:].flatten()
     # calculate orbit
-    duration = 30
-    tick = 0.05
+    duration = 100
+    tick = 0.1
     matplotinit(ds)
     # import numpy parameter
     p = ds_func.sp2np(ds.params).flatten()
@@ -109,9 +109,9 @@ def main():
         ds.ax.plot(state.y[0,:], state.y[1,:],
                 linewidth=1, color=(0.1, 0.1, 0.3),
                ls="-")
-        # ds.ax.plot(state.y[2,:], state.y[3,:],
-        #         linewidth=1, color=(0.3, 0.1, 0.1),
-        #         ls="-")
+        ds.ax.plot(state.y[2,:], state.y[3,:],
+                linewidth=1, color=(0.3, 0.1, 0.1),
+                ls="-")
         ds.state0 = state.y[:, -1]
         plt.pause(0.001)  # REQIRED
 
@@ -137,6 +137,7 @@ def eq_change(ds):
     if(ds.x_ptr >= ds.xdim):
         ds.x_ptr = 0
     ds.state0 = ds.eq[ds.x_ptr, :].flatten()
+    print(ds.x_ptr)
 
 def on_click(event, ds):
     #left click

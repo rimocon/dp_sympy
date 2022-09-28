@@ -101,7 +101,8 @@ def set(ds):
     # convert to numpy
     ds.eq = ds_func.sp2np(eq)
     ds.state0 = ds.eq[ds.x_ptr,:].flatten()
-
+    # ds.state0 = np.array([1,1,1,1])
+    print(ds.state0)
     # import numpy parameter
     ds.p = ds_func.sp2np(ds.params).flatten()
 
@@ -192,18 +193,6 @@ def keyin(event, ds):
         ds.d = ds.d / 10
         print("change increment/decrement scale:",ds.d)
    
-       
-       
-       
-       
-       
-       
-       
-       
-       
-       
-       
-
 def locus(ds):
 
     ds.line, = ds.ax.plot([], [], 'o-', lw=2)
