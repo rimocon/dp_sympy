@@ -53,7 +53,9 @@ class DynamicalSystem:
         self.sym_p = sp.MatrixSymbol('p', sp.shape(self.params)[0],1)
         self.F = map(self.sym_x, self.sym_p, self.const)
         self.dFdx = self.F.jacobian(self.sym_x)
-        
+        self.iter_max = 16
+        self.eps = 1e-16
+        self.explode = 100
         # for pp
         self.fig = plt.figure(figsize = (8, 8))
         self.ax = self.fig.add_subplot(111)
@@ -64,4 +66,5 @@ class DynamicalSystem:
         self.dim_ptr = 0
         self.p_ptr = 0
         self.d = 0.01
+
         

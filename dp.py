@@ -1,3 +1,4 @@
+from re import A
 import sys
 import json
 from this import d
@@ -58,11 +59,51 @@ def main():
     '''
     print("x_alpha\n",x_alpha)
     print("x_omega\n",x_omega)
+    Eq_check(ds)
+    # test = Condition(ds)
+    # # print("条件式テスト",test)
+    # jac_test = jac(ds)
+    # # print("ヤコビアンテスト",jac_test)
 
-    test = Condition(ds)
-    # print("条件式テスト",test)
-    jac_test = jac(ds)
-    # print("ヤコビアンテスト",jac_test)
+def Eq_check(ds):
+    eq = ds_func.equilibrium(ds)
+    vp = eq[1,:].T
+    #print("eq=",vp)
+    print("eq=",eq[1,:].T)
+    vp[0] = vp[0]+0.2
+
+    # for i in range(ds.xdim):
+    #     F = ds.F.subs([(ds.sym_x, vp[0,:].T), (ds.sym_p, ds.params)])
+    #     print(F'eq{i} = {F}')
+
+    for i in range(ds.iter_max):
+        F = ds.F.subs([(ds.sym_x, vp), (ds.sym_p, ds.params)])
+        J = ds.F.jacobian(ds.sym_x)
+        J = J.subs([(ds.sym_x, vp), (ds.sym_p, ds.params)])
+        F = ds_func.sp2np(F)
+        J = ds_func.sp2np(J)
+        # print(F'eq{1} = {F}')
+        # print(J)
+
+        dif = abs(np.linalg.norm(F))
+        print("dif=",dif)
+        if dif < ds.eps:
+            print("success!!!")
+            print("solve vp = ",vp)
+            return vp
+        if dif > ds.explode:
+            print("Exploded")
+            exit()
+            # vn = xk+1
+            # print("vp=",vp)
+        vn = np.linalg.solve(J,-F) + vp
+        print("i=",i)
+        print("vn=",vn)
+        vp = vn
+        # if vn[5] > 1.0:
+        #   print("B0 is too high")
+
+
 
 
 def Condition(ds):
