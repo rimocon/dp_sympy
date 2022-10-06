@@ -1,6 +1,7 @@
 import sys
 import json
 import dynamical_system
+import animation
 import ds_func
 import numpy as np
 import sympy as sp
@@ -101,6 +102,8 @@ def main():
     # import numpy constant
     c = ds_func.sp2np(ds.const).flatten()
     show_params(ds)
+
+    animation
     while ds.running == True:
         state = solve_ivp(func, (0, duration), ds.state0,
             method='RK45', args = (p, c), max_step=tick,

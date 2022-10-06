@@ -70,7 +70,6 @@ def Eq_check(ds):
     vp = eq[1,:].T
     #print("eq=",vp)
     print("eq=",eq[1,:].T)
-    vp[0] = vp[0]+0.2
 
     # for i in range(ds.xdim):
     #     F = ds.F.subs([(ds.sym_x, vp[0,:].T), (ds.sym_p, ds.params)])

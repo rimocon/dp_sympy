@@ -54,11 +54,13 @@ class DynamicalSystem:
         self.F = map(self.sym_x, self.sym_p, self.const)
         self.dFdx = self.F.jacobian(self.sym_x)
         self.iter_max = 16
-        self.eps = 1e-16
+        self.eps = 2e-15
         self.explode = 100
         # for pp
         self.fig = plt.figure(figsize = (8, 8))
-        self.ax = self.fig.add_subplot(111)
+        self.fig2 = plt.figure(figsize = (8, 8))
+        self.ax = self.fig.add_subplot(121)
+        self.ax2 = self.fig.add_subplot(122)
         self.running = True
         self.xrange = json['xrange']
         self.yrange = json['yrange']

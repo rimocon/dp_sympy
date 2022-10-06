@@ -82,7 +82,7 @@ def animate(data):
 
 # generator
 def gen(ds):
-    for tt, th1, th2 in zip(ds.state.t,ds.state.y[0,:], ds.state.y[2,:]):
+    for tt, th1, th2 in zip(ds.state.t, ds.state.y[0,:], ds.state.y[2,:]):
         x1 = ds.c[0] * cos(th1)
         y1 = ds.c[0] * sin(th1)
         x2 = x1 + ds.c[1] * cos(th1 + th2)
