@@ -1,7 +1,6 @@
 import sys
 import json
 import dynamical_system
-import animation
 import ds_func
 import numpy as np
 import sympy as sp
@@ -10,7 +9,6 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 # from sympy import sin,cos
 from numpy import sin,cos
-
 # # プロット用設定
 # plt.rcParams["font.family"] = "Nimbus Roman"    #全体のフォントを設定
 # plt.rcParams['text.usetex'] = True              #描画にTeXを利用
@@ -103,16 +101,15 @@ def main():
     c = ds_func.sp2np(ds.const).flatten()
     show_params(ds)
 
-    animation
     while ds.running == True:
         state = solve_ivp(func, (0, duration), ds.state0,
             method='RK45', args = (p, c), max_step=tick,
             rtol=1e-12, vectorized = True) 
         
-        ds.ax.plot(state.y[0,:], state.y[1,:],
+        ds.ax2.plot(state.y[0,:], state.y[1,:],
                 linewidth=1, color=(0.1, 0.1, 0.3),
                ls="-")
-        ds.ax.plot(state.y[2,:], state.y[3,:],
+        ds.ax2.plot(state.y[2,:], state.y[3,:],
                 linewidth=1, color=(0.3, 0.1, 0.1),
                 ls="-")
         ds.state0 = state.y[:, -1]
@@ -127,12 +124,12 @@ def matplotinit(ds):
 
 def redraw(ds):
     show_params(ds)
-    ds.ax.set_xlim(ds.xrange)
-    ds.ax.set_ylim(ds.yrange)
-    ds.ax.grid(c='gainsboro', ls='--', zorder=9)
-    ds.ax.set_xlabel(r"$\theta_{1}$")
+    ds.ax2.set_xlim(ds.xrange)
+    ds.ax2.set_ylim(ds.yrange)
+    ds.ax2.grid(c='gainsboro', ls='--', zorder=9)
+    ds.ax2.set_xlabel(r"$\theta_{1}$")
     # ds.ax.set_xlabel(r"$\theta_{2}$")
-    ds.ax.set_ylabel(r"$\dot{\theta_{1}}$")
+    ds.ax2.set_ylabel(r"$\dot{\theta_{1}}$")
     # ds.ax.set_ylabel(r"$\dot{\theta_{2}}$")
     
 def eq_change(ds):
@@ -166,11 +163,11 @@ def keyin(event, ds):
         print("quit")
         sys.exit()
     elif event.key == ' ':
-        ds.ax.cla()
+        ds.ax2.cla()
         redraw(ds)
         state_reset(ds)
     elif event.key == 'x':
-        ds.ax.cla()
+        ds.ax2.cla()
         eq_change(ds)
         redraw(ds)
     elif event.key == 'c':

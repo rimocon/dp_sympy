@@ -76,17 +76,31 @@ def solver(ds):
 def animate(i):
     thisx = [0, ds.x1[i], ds.x2[i]]
     thisy = [0, ds.y1[i], ds.y2[i]]
-
+    thisx2 = [ds.state.y[0,0], ds.state.y[0,i]]
+    thisy2 = [ds.state.y[1,0], ds.state.y[1,i]]
+    # thisy2 = [ds.state.y[2,i], ds.state.y[3,i]]
+    print(thisx2)
+    # print(thisy2)
     if i == 0:
         ds.history_x.clear()
         ds.history_y.clear()
+        ds.history_x2.clear()
+        ds.history_y2.clear()
     ds.history_x.appendleft(thisx[2])
     ds.history_y.appendleft(thisy[2])
 
+    ds.history_x2.appendleft(thisx2[1])
+    ds.history_y2.appendleft(thisy2[1])
+
     ds.line.set_data(thisx, thisy)
+    # ds.line2.set_data(thisx2, thisy2)
+    # ds.ax2.plot(ds.state.y[0,i], ds.state.y[1,i],
+    # linewidth=1, color=(0.1, 0.1, 0.3),
+    # ls="-")
     ds.trace.set_data(ds.history_x, ds.history_y)
+    ds.trace2.set_data(ds.history_x2, ds.history_y2)
     ds.time_text.set_text(ds.time_template % (ds.state.t[i]))
-    return ds.line, ds.trace, ds.time_text
+    return ds.line,ds.trace,ds.trace2,ds.time_text
 
 # generator
 def gen(ds):
@@ -114,7 +128,13 @@ def set(ds):
     ds.ax.set_ylim(-(ds.c[0]+ds.c[1]),ds.c[0]+ds.c[1])
     ds.ax.set_xticks([-(ds.c[0]+ds.c[1]),-(ds.c[0]+ds.c[1])/2, 0, (ds.c[0]+ds.c[1])/2, ds.c[0]+ds.c[1]])
     ds.ax.set_yticks([-(ds.c[0]+ds.c[1]),-(ds.c[0]+ds.c[1])/2, 0, (ds.c[0]+ds.c[1])/2, ds.c[0]+ds.c[1]])
-    ds.ax.set_aspect('equal')
+    
+    
+    ds.ax2.set_xlim(-10,10)
+    ds.ax2.set_ylim(-10,10)
+    ds.ax2.set_aspect('equal')
+    ds.ax2.grid()
+
     s = ""
     eq= ""
     cnt = 0
@@ -196,10 +216,13 @@ def keyin(event, ds):
 def locus(ds):
 
     ds.line, = ds.ax.plot([], [], 'o-', lw=2)
+    # ds.line2, = ds.ax2.plot([],[], ls='-.', lw=2)
     ds.trace, = ds.ax.plot([], [], '.-', lw=1, ms=2)
+    ds.trace2, = ds.ax2.plot([], [], '-', lw=1, ms=2)
     ds.time_template = 'time = %.1fs'
     ds.time_text = ds.ax.text(0.05, 0.9, '', transform=ds.ax.transAxes)
     ds.history_x, ds.history_y = deque(maxlen=ds.history_len), deque(maxlen=ds.history_len)
+    ds.history_x2, ds.history_y2 = deque(maxlen=ds.history_len2), deque(maxlen=ds.history_len2)
 
 # load data from json file
 if len(sys.argv) != 2:
@@ -215,6 +238,7 @@ ds.duration = 40
 ds.tick = 0.01
 ds.eval = np.arange(0, ds.duration, ds.tick)
 ds.history_len = 500
+ds.history_len2 = 5000
 
 
 set(ds)
