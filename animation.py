@@ -8,6 +8,7 @@ from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from collections import deque
+from matplotlib.backend_bases import MouseButton
 
 # # プロット用設定
 # plt.rcParams["font.family"] = "Nimbus Roman"    #全体のフォントを設定
@@ -76,21 +77,27 @@ def solver(ds):
 def animate(i):
     thisx = [0, ds.x1[i], ds.x2[i]]
     thisy = [0, ds.y1[i], ds.y2[i]]
-    thisx2 = [ds.state.y[0,0], ds.state.y[0,i]]
-    thisy2 = [ds.state.y[1,0], ds.state.y[1,i]]
-    # thisy2 = [ds.state.y[2,i], ds.state.y[3,i]]
-    print(thisx2)
-    # print(thisy2)
+    theta_1 = [ds.state.y[0,0], ds.state.y[0,i]]
+    omega_1 = [ds.state.y[1,0], ds.state.y[1,i]]
+    theta_2 = [ds.state.y[2,0], ds.state.y[2,i]]
+    omega_2 = [ds.state.y[3,0], ds.state.y[3,i]]
+
     if i == 0:
         ds.history_x.clear()
         ds.history_y.clear()
-        ds.history_x2.clear()
-        ds.history_y2.clear()
+        ds.history_theta_1.clear()
+        ds.history_omega_1.clear()
+        ds.history_theta_2.clear()
+        ds.history_omega_2.clear()
+
     ds.history_x.appendleft(thisx[2])
     ds.history_y.appendleft(thisy[2])
 
-    ds.history_x2.appendleft(thisx2[1])
-    ds.history_y2.appendleft(thisy2[1])
+    ds.history_theta_1.appendleft(theta_1[1])
+    ds.history_omega_1.appendleft(omega_1[1])
+
+    ds.history_theta_2.appendleft(theta_2[1])
+    ds.history_omega_2.appendleft(omega_2[1])
 
     ds.line.set_data(thisx, thisy)
     # ds.line2.set_data(thisx2, thisy2)
@@ -98,9 +105,11 @@ def animate(i):
     # linewidth=1, color=(0.1, 0.1, 0.3),
     # ls="-")
     ds.trace.set_data(ds.history_x, ds.history_y)
-    ds.trace2.set_data(ds.history_x2, ds.history_y2)
+    ds.trace2.set_data(ds.history_theta_1, ds.history_omega_1)
+    ds.trace3.set_data(ds.history_theta_2, ds.history_omega_2)
+
     ds.time_text.set_text(ds.time_template % (ds.state.t[i]))
-    return ds.line,ds.trace,ds.trace2,ds.time_text
+    return ds.line,ds.trace,ds.trace2,ds.trace3,ds.time_text
 
 # generator
 def gen(ds):
@@ -128,10 +137,10 @@ def set(ds):
     ds.ax.set_ylim(-(ds.c[0]+ds.c[1]),ds.c[0]+ds.c[1])
     ds.ax.set_xticks([-(ds.c[0]+ds.c[1]),-(ds.c[0]+ds.c[1])/2, 0, (ds.c[0]+ds.c[1])/2, ds.c[0]+ds.c[1]])
     ds.ax.set_yticks([-(ds.c[0]+ds.c[1]),-(ds.c[0]+ds.c[1])/2, 0, (ds.c[0]+ds.c[1])/2, ds.c[0]+ds.c[1]])
+    ds.ax.grid()
     
-    
-    ds.ax2.set_xlim(-10,10)
-    ds.ax2.set_ylim(-10,10)
+    ds.ax2.set_xlim(-15,15)
+    ds.ax2.set_ylim(-15,15)
     ds.ax2.set_aspect('equal')
     ds.ax2.grid()
 
@@ -148,7 +157,6 @@ def set(ds):
     cnt = 0
     title = s + "\n" + eq
     plt.title(title, color='b')
-    ds.ax.grid()
     
 def keyin(event, ds):
     if event.key == 'q':
@@ -185,6 +193,7 @@ def keyin(event, ds):
         solver(ds)
         gen(ds)
         ds.ani.frame_seq = ds.ani.new_frame_seq()
+
     elif event.key == 'down':
         plt.cla()
         print(f"change paramter[{ds.p_ptr}]")
@@ -196,6 +205,7 @@ def keyin(event, ds):
         solver(ds)
         gen(ds)
         ds.ani.frame_seq = ds.ani.new_frame_seq()
+
     elif event.key == ' ':
         print("redraw")
         plt.cla()
@@ -212,17 +222,44 @@ def keyin(event, ds):
     elif event.key == 'left':
         ds.d = ds.d / 10
         print("change increment/decrement scale:",ds.d)
-   
+
+def on_click(event, ds):
+    #left click
+    if event.xdata == None or event.ydata == None:
+        return
+    if event.button is MouseButton.LEFT:
+        ds.state0[0] = event.xdata
+        ds.state0[1] = event.ydata
+        print(f"change inital value --->>({ds.state0[0]},{ds.state0[1]},{ds.state0[2]}, {ds.state0[3]})")
+        # set(ds)
+        locus(ds)
+        solver(ds)
+        gen(ds)
+        ds.ani.frame_seq = ds.ani.new_frame_seq()
+    if event.button is MouseButton.RIGHT:
+        ds.state0[2] = event.xdata
+        ds.state0[3] = event.ydata
+        print(f"change inital value --->>({ds.state0[0]},{ds.state0[1]},{ds.state0[2]}, {ds.state0[3]})")
+        # set(ds)
+        locus(ds)
+        solver(ds)
+        gen(ds)
+        ds.ani.frame_seq = ds.ani.new_frame_seq()
+    
+
 def locus(ds):
 
-    ds.line, = ds.ax.plot([], [], 'o-', lw=2)
-    # ds.line2, = ds.ax2.plot([],[], ls='-.', lw=2)
-    ds.trace, = ds.ax.plot([], [], '.-', lw=1, ms=2)
-    ds.trace2, = ds.ax2.plot([], [], '-', lw=1, ms=2)
+    ds.line, = ds.ax.plot([], [], 'o-', lw=2, color='magenta')
+
+    ds.trace, = ds.ax.plot([], [], '.-', lw=1, ms=2, color='orange')
+    ds.trace2, = ds.ax2.plot([], [], '-', lw=1, ms=2, color='blue')
+    ds.trace3, = ds.ax2.plot([], [], '-', lw=1, ms=2, color='red')
     ds.time_template = 'time = %.1fs'
     ds.time_text = ds.ax.text(0.05, 0.9, '', transform=ds.ax.transAxes)
     ds.history_x, ds.history_y = deque(maxlen=ds.history_len), deque(maxlen=ds.history_len)
-    ds.history_x2, ds.history_y2 = deque(maxlen=ds.history_len2), deque(maxlen=ds.history_len2)
+    ds.history_theta_1, ds.history_omega_1, ds.history_theta_2,ds.history_omega_2= deque(maxlen=ds.history_len2), deque(maxlen=ds.history_len2), deque(maxlen=ds.history_len2), deque(maxlen=ds.history_len2)
+
+
 
 # load data from json file
 if len(sys.argv) != 2:
@@ -247,6 +284,8 @@ solver(ds)
 # graph
 plt.connect('key_press_event',
     lambda event: keyin(event, ds))
+plt.connect('button_press_event',
+    lambda event: on_click(event, ds))
 locus(ds)
 gen(ds)
 ds.ani = FuncAnimation(ds.fig, animate, len(ds.state.t), interval=ds.tick * 1000,blit = True, repeat = False)
