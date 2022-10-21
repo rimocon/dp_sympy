@@ -288,6 +288,6 @@ plt.connect('button_press_event',
     lambda event: on_click(event, ds))
 locus(ds)
 gen(ds)
-ds.ani = FuncAnimation(ds.fig, animate, len(ds.state.t), interval=ds.tick * 1000,blit = True, repeat = False)
+ds.ani = FuncAnimation(ds.fig, animate, len(ds.state.t), interval=ds.tick * 1000,blit = True, repeat = True)
     # ani.save('double_pendulum.gif', writer='pillow', fps=15)
 plt.show()
