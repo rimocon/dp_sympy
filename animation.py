@@ -123,8 +123,8 @@ def set(ds):
     eq = ds_func.equilibrium(ds)
     # convert to numpy
     ds.eq = ds_func.sp2np(eq)
+    print(ds.eq)
     ds.state0 = ds.eq[ds.x_ptr,:].flatten()
-    # ds.state0 = np.array([1,1,1,1])
     print(ds.state0)
     # import numpy parameter
     ds.p = ds_func.sp2np(ds.params).flatten()
@@ -132,6 +132,7 @@ def set(ds):
     # import numpy constant
     ds.c = ds_func.sp2np(ds.const).flatten()
 
+    ds.eig,eig_vl,eig_vr = ds_func.eigen(eq, ds, ds.x_ptr)
    
     ds.ax.set_xlim(-(ds.c[0]+ds.c[1]),ds.c[0]+ds.c[1])
     ds.ax.set_ylim(-(ds.c[0]+ds.c[1]),ds.c[0]+ds.c[1])
@@ -146,6 +147,7 @@ def set(ds):
 
     s = ""
     eq= ""
+    eig = ""
     cnt = 0
     for key in ds.p:
         s += f"p{cnt:d} {key:.4f} "
@@ -155,7 +157,13 @@ def set(ds):
         eq += f"x{cnt:d}0 {key:.4f} "
         cnt += 1
     cnt = 0
-    title = s + "\n" + eq
+
+    for key in ds.eig:
+        eig += f",{ds.x_ptr:d} {key:.4f} "
+        cnt += 1
+    cnt = 0
+    title = s + "\n" + eq + "\n" + "eigen" + eig
+    print(title)
     plt.title(title, color='b')
     
 def keyin(event, ds):
@@ -269,7 +277,7 @@ json_data = json.load(fd)
 fd.close()
 
 ds = dynamical_system.DynamicalSystem(json_data)
-ds.x_ptr = 3
+ds.x_ptr = 0
 ds.p_ptr = 0
 ds.duration = 40
 ds.tick = 0.01

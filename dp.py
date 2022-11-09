@@ -26,14 +26,12 @@ def main():
     eq = ds_func.equilibrium(ds)
     ds.x0 = ds_func.sp2np(eq)
     print("x0\n",ds.x0)
-    '''
     for i in range(4):
         eig,eig_vl,eig_vr = ds_func.eigen(eq, ds, i)
         ds.mu_alpha = eig[0]
         ds.mu_omega = eig[1]
 
         print("eigenvalue\n", eig)
-    '''
     eig,eig_vl,eig_vr = ds_func.eigen(eq, ds, 0)
     ds.mu_alpha = eig[0]
     ds.mu_omega = eig[1]
