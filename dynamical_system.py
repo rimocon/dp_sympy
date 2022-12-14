@@ -57,9 +57,9 @@ class DynamicalSystem:
         self.eps = 2e-15
         self.explode = 100
         # for pp
-        self.fig = plt.figure(figsize = (16, 8))
-        self.ax = self.fig.add_subplot(121)
-        self.ax2 = self.fig.add_subplot(122)
+        self.fig = plt.figure(figsize = (15, 8))
+        # self.ax = self.fig.add_subplot(121)
+        self.ax2 = self.fig.add_subplot(111)
         self.running = True
         self.xrange = json['xrange']
         self.yrange = json['yrange']

@@ -2,6 +2,7 @@ import sys
 import json
 import dynamical_system
 import ds_func
+import dp
 import numpy as np
 from numpy import sin, cos
 from scipy.integrate import solve_ivp
@@ -165,7 +166,53 @@ def set(ds):
     title = s + "\n" + eq + "\n" + "eigen" + eig
     print(title)
     plt.title(title, color='b')
+
+def set_alpha(ds):
+    dp.Alpha(ds)
+    ds.state0 = ds.x_alpha[ds.x_ptr,:].flatten()
+    print(ds.state0)
+    print("x_omega=",ds.x_omega)
+    # import numpy parameter
+    ds.p = ds_func.sp2np(ds.params).flatten()
+
+    # import numpy constant1
+    ds.c = ds_func.sp2np(ds.const).flatten()
+
+    eq = ds_func.equilibrium(ds)
+    ds.eig,eig_vl,eig_vr = ds_func.eigen(eq, ds, ds.x_ptr)
+   
+    ds.ax.set_xlim(-(ds.c[0]+ds.c[1]),ds.c[0]+ds.c[1])
+    ds.ax.set_ylim(-(ds.c[0]+ds.c[1]),ds.c[0]+ds.c[1])
+    ds.ax.set_xticks([-(ds.c[0]+ds.c[1]),-(ds.c[0]+ds.c[1])/2, 0, (ds.c[0]+ds.c[1])/2, ds.c[0]+ds.c[1]])
+    ds.ax.set_yticks([-(ds.c[0]+ds.c[1]),-(ds.c[0]+ds.c[1])/2, 0, (ds.c[0]+ds.c[1])/2, ds.c[0]+ds.c[1]])
+    ds.ax.grid()
+    ds.ax2.set_xlim(-15,15)
+    ds.ax2.set_ylim(-15,15)
+    ds.ax2.set_aspect('equal')
+    ds.ax2.grid()
     
+
+    s = ""
+    eq= ""
+    eig = ""
+    cnt = 0
+    for key in ds.p:
+        s += f"p{cnt:d} {key:.4f} "
+        cnt += 1
+    cnt = 0
+    for key in ds.state0:
+        eq += f"x{cnt:d}0 {key:.4f} "
+        cnt += 1
+    cnt = 0
+
+    for key in ds.eig:
+        eig += f",{ds.x_ptr:d} {key:.4f} "
+        cnt += 1
+    cnt = 0
+    title = s + "\n" + eq + "\n" + "eigen" + eig
+    print(title)
+    plt.title(title, color='b')
+
 def keyin(event, ds):
     if event.key == 'q':
         plt.cla()
@@ -189,7 +236,24 @@ def keyin(event, ds):
         if(ds.p_ptr >= 4):
             ds.p_ptr = 0
         print(f"changable paramter: {ds.p_ptr}")
-
+    elif event.key == 'c':
+        ds.state0 = np.array([1.6218042534,0,-0.1531571004,0])
+        print(ds.state0)
+        locus(ds)
+        solver(ds)
+        gen(ds)
+        ds.ani.frame_seq = ds.ani.new_frame_seq()
+        plt.show()
+        print(f"change eq: {ds.state0}")
+    elif event.key == 'a':
+        set_alpha(ds)
+        print(ds.state0)
+        locus(ds)
+        solver(ds)
+        gen(ds)
+        ds.ani.frame_seq = ds.ani.new_frame_seq()
+        plt.show()
+        print(f"change initial value to x_alpha: {ds.state0}") 
     elif event.key == 'up':
         plt.cla()
         print(f"change paramter[{ds.p_ptr}]")

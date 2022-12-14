@@ -2,6 +2,7 @@ import sys
 import json
 import dynamical_system
 import ds_func
+import dp
 import numpy as np
 import sympy as sp
 from scipy.integrate import solve_ivp
@@ -90,10 +91,28 @@ def main():
     eq = ds_func.equilibrium(ds)
     # convert to numpy
     ds.eq = ds_func.sp2np(eq)
-    ds.state0 = ds.eq[1,:].flatten()
+    ds.state0 = ds.eq[0,:].flatten()
+    dp.Eigen(ds)
+    temp = np.array([-2*np.pi,0,0,0])
+    ds.state0_a = ds.x_a
+    ds.state0_b = ds.x_b
+    ds.state0_c = ds.x_c
+    ds.state0_d = ds.x_d
+
+    ds.state0_e = ds.x_e
+    ds.state0_f = ds.x_f
+    ds.state0_g = ds.x_g
+    ds.state0_h = ds.x_h
+
+    print(ds.x_a)
+    print("kore")
+    #print("e",ds.state0_e)
+    print("a",ds.state0_a)
+
+
     # calculate orbit
-    duration = 100
-    tick = 0.1
+    duration = 15
+    tick = 0.01
     matplotinit(ds)
     # import numpy parameter
     p = ds_func.sp2np(ds.params).flatten()
@@ -103,16 +122,105 @@ def main():
 
     while ds.running == True:
         state = solve_ivp(func, (0, duration), ds.state0,
+             method='RK45', args = (p, c), max_step=tick,
+             rtol=1e-12, vectorized = True) 
+        state_a = solve_ivp(func, (0, duration), ds.state0_a,
             method='RK45', args = (p, c), max_step=tick,
-            rtol=1e-12, vectorized = True) 
-        
+            rtol=1e-12, vectorized = True)  
+        state_b = solve_ivp(func, (0, duration), ds.state0_b,
+            method='RK45', args = (p, c), max_step=tick,
+            rtol=1e-12, vectorized = True)
+        state_c = solve_ivp(func, (0, duration), ds.state0_c,
+            method='RK45', args = (p, c), max_step=tick,
+            rtol=1e-12, vectorized = True)
+        state_d = solve_ivp(func, (0, duration), ds.state0_d,
+            method='RK45', args = (p, c), max_step=tick,
+            rtol=1e-12, vectorized = True)
+        # state_x = solve_ivp(func, (0, duration), ds.state0_x,
+        #     method='RK45', args = (p, c), max_step=tick,
+        #     rtol=1e-12, vectorized = True)
+        state_a_m = solve_ivp(func, (-duration,0), ds.x_a - temp,
+            method='RK45', args = (p, c), max_step=tick,
+            rtol=1e-12, vectorized = True)  
+        state_b_m = solve_ivp(func, (-duration,0), ds.x_b - temp,
+            method='RK45', args = (p, c), max_step=tick,
+            rtol=1e-12, vectorized = True)
+        state_c_m = solve_ivp(func, (-duration,0), ds.x_c - temp,
+            method='RK45', args = (p, c), max_step=tick,
+            rtol=1e-12, vectorized = True)
+        state_d_m = solve_ivp(func, (-duration,0), ds.x_d - temp,
+            method='RK45', args = (p, c), max_step=tick,
+            rtol=1e-12, vectorized = True)
+        # state_e = solve_ivp(func, (0,duration), ds.state0_e,
+        #     method='RK45', args = (p, c), max_step=tick,
+        #     rtol=1e-12, vectorized = True)  
+        # state_f = solve_ivp(func, (0,duration), ds.state0_f,
+        #     method='RK45', args = (p, c), max_step=tick,
+        #     rtol=1e-12, vectorized = True)
+        # state_g = solve_ivp(func, (0,duration), ds.state0_g,
+        #     method='RK45', args = (p, c), max_step=tick,
+        #     rtol=1e-12, vectorized = True)
+        # state_h = solve_ivp(func, (0,duration), ds.state0_h,
+        #     method='RK45', args = (p, c), max_step=tick,
+        #     rtol=1e-12, vectorized = True)
+
+        # state_minus = solve_ivp(func, (-duration,0), ds.state0_minus,
+        #     method='RK45', args = (p, c), max_step=tick,
+        #     rtol=1e-12, vectorized = True) 
+        # state_alpha_minus = solve_ivp(func, (-duration,0), ds.alpha0_minus,
+        #     method='RK45', args = (p, c), max_step=tick,
+        #     rtol=1e-12, vectorized = True)  
+        # state_alpha_plus = solve_ivp(func, (0, duration), ds.alpha0,
+        #     method='RK45', args = (p, c), max_step=tick,
+        #     rtol=1e-12, vectorized = True)  
+        # state_omega_plus = solve_ivp(func, (0, duration), ds.omega0,
+        #     method='RK45', args = (p, c), max_step=tick,
+        #     rtol=1e-12, vectorized = True) 
+
         ds.ax2.plot(state.y[0,:], state.y[1,:],
-                linewidth=1, color=(0.1, 0.1, 0.3),
+                linewidth=1,color = (0.0, 0.0, 0.0),
                ls="-")
-        ds.ax2.plot(state.y[2,:], state.y[3,:],
-                linewidth=1, color=(0.3, 0.1, 0.1),
-                ls="-")
-        ds.state0 = state.y[:, -1]
+        # ds.ax2.plot(state_a.y[0,:], state_a.y[1,:],
+        #         linewidth=1,color = (1.0, 0.0, 0.0),
+        #        ls="-")
+        # ds.ax2.plot(state_b.y[0,:], state_b.y[1,:],
+        #         linewidth=1,color = (1.0, 0.0, 0.0),
+        #         ls="-")
+        ds.ax2.plot(state_c.y[0,:], state_c.y[1,:],
+                linewidth=1,color = (0.0, 0.0, 1.0),
+               ls="-")
+        ds.ax2.plot(state_d.y[0,:], state_d.y[1,:],
+                linewidth=1,color = (0.0, 0.0, 1.0),
+               ls="-")
+        # ds.ax2.plot(state_a_m.y[0,:], state_a_m.y[1,:],
+        #         linewidth=1,color = (1.0, 0.0, 0.0),
+        #        ls="-")
+        # ds.ax2.plot(state_b_m.y[0,:], state_b_m.y[1,:],
+        #         linewidth=1,color = (1.0, 0.0, 0.0),
+        #         ls="-")
+        ds.ax2.plot(state_c_m.y[0,:], state_c_m.y[1,:],
+                linewidth=1,color = (0.0, 0.0, 1.0),
+               ls="-")
+        ds.ax2.plot(state_d_m.y[0,:], state_d_m.y[1,:],
+                linewidth=1,color = (0.0, 0.0, 1.0),
+               ls="-")
+
+
+        # ds.ax2.plot(state_e.y[0,:], state_e.y[1,:],
+        #         linewidth=1,
+        #        ls="-")
+        # ds.ax2.plot(state_f.y[0,:], state_f.y[1,:],
+        #         linewidth=1,
+        #         ls="-")
+        # ds.ax2.plot(state_g.y[0,:], state_g.y[1,:],
+        #         linewidth=1,
+        #        ls="-")
+        # ds.ax2.plot(state_h.y[0,:], state_h.y[1,:],
+        #         linewidth=1,
+        #        ls="-")
+        # ds.ax2.plot(state.y[2,:], state.y[3,:],
+        #         linewidth=1, color=(0.3, 0.6, 0.6),
+        # #         ls="-")
         plt.pause(0.001)  # REQIRED
 
 def matplotinit(ds):
@@ -131,7 +239,7 @@ def redraw(ds):
     # ds.ax.set_xlabel(r"$\theta_{2}$")
     ds.ax2.set_ylabel(r"$\dot{\theta_{1}}$")
     # ds.ax.set_ylabel(r"$\dot{\theta_{2}}$")
-    
+
 def eq_change(ds):
     ds.x_ptr += 1
     if(ds.x_ptr >= ds.xdim):
