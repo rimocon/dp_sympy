@@ -1,7 +1,5 @@
-from re import A
 import sys
 import json
-from this import d
 import dynamical_system
 import ds_func
 import numpy as np
@@ -46,6 +44,7 @@ def main():
     if len(sys.argv) != 2:
         print(f"Usage: python {sys.argv[0]} filename")
         sys.exit(0)
+
     fd = open(sys.argv[1], 'r')
     json_data = json.load(fd)
     fd.close()
@@ -56,33 +55,36 @@ def main():
     ds.p = ds_func.sp2np(ds.params).flatten()
     # import numpy constant
     ds.c = ds_func.sp2np(ds.const).flatten()
+    Eigen(ds)
     Eq_check(ds)
-    ds.duration = 40
-    ds.tick = 0.01
-    ds.eval = np.arange(0, ds.duration, ds.tick)
-    Alpha(ds)
-    ds.state0 = ds.x_alpha[0,:].flatten()
-    print(ds.state0)
-    # solver
-    ds.state = solve_ivp(func, (0, ds.duration), ds.state0, 
-        method='RK45', t_eval = ds.eval, args = (ds.p, ds.c), 
-        rtol=1e-12, vectorized = True)
-    print(ds.state.t)
-    
+    # ds.duration = 40
+    # ds.tick = 0.01
+    # ds.eval = np.arange(0, ds.duration, ds.tick)
+    # Alpha(ds)
+    # ds.state0 = ds.x_alpha[0,:].flatten()
+    # print(ds.state0)
+    # print(ds.state0)
+    # # solver
+    # ds.state = solve_ivp(func, (0, ds.duration), ds.state0, 
+    #     method='RK45', t_eval = ds.eval, args = (ds.p, ds.c), 
+    #     rtol=1e-12, vectorized = True)
+    # print(ds.state.t)
+    # # Condition(ds)
 
-    '''
-    ##### for all eqpoints#####
-    for i in range(ds.xdim):
-        delta_vec = eig_vr[:,i] * ds.delta
-        ds.x_alpha = np_eq + delta_vec
-    '''
-    print("x_alpha\n",ds.x_alpha)
-    print("x_omega\n",ds.x_omega)
-    Eq_check(ds)
+    # '''
+    # ##### for all eqpoints#####
+    # for i in range(ds.xdim):
+    #     delta_vec = eig_vr[:,i] * ds.delta
+    #     ds.x_alpha = np_eq + delta_vec
+    # '''
+    # print("x_alpha\n",ds.x_alpha)
+    # print("x_omega\n",ds.x_omega)
+    # Eq_check(ds)
     # test = Condition(ds)
     # # print("条件式テスト",test)
     # jac_test = jac(ds)
     # # print("ヤコビアンテスト",jac_test)
+
 def Alpha(ds):
     eq = ds_func.equilibrium(ds)
     ds.x0 = ds_func.sp2np(eq)
@@ -108,56 +110,37 @@ def Alpha(ds):
 
     ds.x_alpha = x_alpha
     ds.x_omega = x_omega
+
 def Eigen(ds):
     eq = ds_func.equilibrium(ds)
     ds.x0 = ds_func.sp2np(eq)
+    ds.x0 = ds.x0[0,:]
     print("x0\n",ds.x0)
-
     # for i in range(4):
     #     eig,eig_vl,eig_vr = ds_func.eigen(eq, ds, i)
 
     eig,eig_vl,eig_vr = ds_func.eigen(eq, ds, 0)
     print("eigenvalue\n", eig)
-    eig_vr =eig_vr * (-1)
-    print("eigen_v1\n",eig_vr[:,0])
-    print("eigen_v2\n",eig_vr[:,1])
-    print("eigen_v3\n",eig_vr[:,2])
-    print("eigen_v4\n",eig_vr[:,3])
-    delta_a = eig_vr[:,0] * ds.delta
-    delta_b = eig_vr[:,1] * ds.delta
-    delta_c = eig_vr[:,2] * ds.delta
-    delta_d = eig_vr[:,3] * ds.delta
+    eig_vr = eig_vr * (-1)
+    print("eigen_vector",*eig_vr[:,].T,sep='\n')
+    delta = eig_vr[:,].T * ds.delta
+    ds.xa = ds.x0 + delta
 
-    delta_e = eig_vr[:,2] * 10 * ds.delta
-    delta_f = eig_vr[:,2] * 10 * ds.delta
-    delta_g = eig_vr[:,3] * 10 * ds.delta
-    delta_h = eig_vr[:,3] * 10 * ds.delta
-    ds.x0 = ds.x0[0,:]
-    x_a = ds.x0 + delta_a
-    x_b = ds.x0 + delta_b
-    x_c = ds.x0 + delta_c
-    x_d = ds.x0 + delta_d
-    x_e = ds.x0 + delta_e
-    x_f = ds.x0 + delta_f
-    x_g = ds.x0 + delta_g
-    x_h = ds.x0 + delta_h
-    print("x_a",x_a)
-    print("x_b",x_b)
-    print("x_c",x_c)
-    print("x_d",x_d)
-    ds.x_a = x_a
-    ds.x_b = x_b
-    ds.x_c = x_c
-    ds.x_d = x_d
-    ds.x_e = x_e
-    ds.x_f = x_f
-    ds.x_g = x_g
-    ds.x_h = x_h
+    eig_vr = eig_vr * (-1)
+    print("inverse_eigen_vector",*eig_vr[:,].T,sep='\n')
+    delta = eig_vr[:,].T * ds.delta
+    ds.xb = ds.x0 + delta
+
+
+    print("x0", ds.x0)
+    print("xa", ds.xa)
+    print("xb", ds.xb)
+
 def Eq_check(ds):
     eq = ds_func.equilibrium(ds)
-    vp = eq[1,:].T
-    #print("eq=",vp)
-    print("eq=",eq[1,:].T)
+    vp = eq[0,:].T
+    vp = sp.Matrix(vp)
+    print("eq=",vp)
 
     # for i in range(ds.xdim):
     #     F = ds.F.subs([(ds.sym_x, vp[0,:].T), (ds.sym_p, ds.params)])
@@ -209,6 +192,7 @@ def Condition(ds):
 
     ])
     return F
+
 def jac(ds):
     F = Condition(ds)
     J = F.jacobian(ds.sym_x)

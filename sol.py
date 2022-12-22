@@ -11,6 +11,34 @@ from matplotlib.backends.backend_pdf import PdfPages
 from numpy import sin,cos
 
 
+# # プロット用設定
+# plt.rcParams["font.family"] = "Nimbus Roman"    #全体のフォントを設定
+# plt.rcParams['text.usetex'] = True              #描画にTeXを利用
+# plt.rcParams['text.latex.preamble'] = r'''\usepackage{amsmath}
+#                                           \usepackage{amssymb}
+#                                           \usepackage[T1]{fontenc}
+#                                           \usepackage{bm}
+#                                           \usepackage{xcolor}
+#                                           '''
+# plt.rcParams["figure.autolayout"] = False       #レイアウト自動調整をするかどうか
+# plt.rcParams["font.size"] = 24                  #フォントの大きさ
+# plt.rcParams["xtick.direction"] = "in"          #x軸の目盛線を内向きへ
+# plt.rcParams["ytick.direction"] = "in"          #y軸の目盛線を内向きへ
+# plt.rcParams["xtick.minor.visible"] = True      #x軸補助目盛りの追加
+# plt.rcParams["ytick.minor.visible"] = True      #y軸補助目盛りの追加
+# plt.rcParams["xtick.major.width"] = 1.0         #x軸主目盛り線の線幅
+# plt.rcParams["ytick.major.width"] = 1.0         #y軸主目盛り線の線幅
+# plt.rcParams["xtick.minor.width"] = 0.5         #x軸補助目盛り線の線幅
+# plt.rcParams["ytick.minor.width"] = 0.5         #y軸補助目盛り線の線幅
+# plt.rcParams["xtick.major.size"] = 20           #x軸主目盛り線の長さ
+# plt.rcParams["ytick.major.size"] = 20          #y軸主目盛り線の長さ
+# plt.rcParams["xtick.minor.size"] = 10            #x軸補助目盛り線の長さ
+# plt.rcParams["ytick.minor.size"] = 10            #y軸補助目盛り線の長さ
+# plt.rcParams["xtick.major.pad"] = 16             #x軸と目盛数値のマージン
+# plt.rcParams["ytick.major.pad"] = 16             #y軸と目盛数値のマージン
+# plt.rcParams["axes.linewidth"] = 2            #囲みの太さ
+
+
 def func(t, x, p, c):
     M1 = c[0]
     M2 = c[1]
@@ -55,8 +83,10 @@ def main():
     ##################################################
     # solve
     ##################################################
-    duration = [0,20]
+    duration = [0,20] 
     tick = 0.01
+    t_eval = np.arange(duration[0],duration[1],tick)
+    print(t_eval)
     # import numpy parameter
     p = ds_func.sp2np(ds.params).flatten()
     # import numpy constant
@@ -69,9 +99,9 @@ def main():
     ds.state0 = ds.eq[0,:].flatten()
     
     state = solve_ivp(func, duration, ds.x0,
-        method='RK45', args = (p, c), max_step=tick,
+        method='RK45', args = (p, c), t_eval = t_eval,
         rtol=1e-12)
-    
+    print(state.t)
     label = "stable"
     color = (1.0, 0.0, 0.0)
     for i in range(4):

@@ -54,7 +54,7 @@ class DynamicalSystem:
         self.F = map(self.sym_x, self.sym_p, self.const)
         self.dFdx = self.F.jacobian(self.sym_x)
         self.iter_max = 16
-        self.eps = 2e-15
+        self.eps = 1e-15
         self.explode = 100
         # for pp
         self.fig = plt.figure(figsize = (15, 8))
