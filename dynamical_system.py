@@ -1,3 +1,4 @@
+from re import A
 import numpy as np
 import sympy as sp
 from sympy import sin, cos
@@ -51,11 +52,26 @@ class DynamicalSystem:
         self.mu_omega = 0
         self.sym_x = sp.MatrixSymbol('x', self.xdim, 1)
         self.sym_p = sp.MatrixSymbol('p', sp.shape(self.params)[0],1)
+        
         self.F = map(self.sym_x, self.sym_p, self.const)
         self.dFdx = self.F.jacobian(self.sym_x)
         self.iter_max = 16
         self.eps = 1e-15
         self.explode = 100
+        # for newton condition
+        self.sym_z = sp.MatrixSymbol('z', 12, 1)
+        self.sym_pp = sp.MatrixSymbol('p', sp.shape(self.params)[0],1)
+        self.sym_pp = self.sym_z[8:12,0]
+        self.F_n = map(self.sym_x, self.sym_pp, self.const)
+        self.dFdx_n = self.F_n.jacobian(self.sym_x)
+        self.var = json['var']
+
+        #self.sym_p = self.sym_z[8:12,0]
+        #for solver
+        self.duration = [0,10]
+        self.tick = 0.01
+        self.t_eval = np.arange(self.duration[0], self.duration[1],self.tick)
+
         # for pp
         self.fig = plt.figure(figsize = (15, 8))
         # self.ax = self.fig.add_subplot(121)

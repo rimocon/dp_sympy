@@ -1,13 +1,16 @@
+from re import A
 import sys
 import json
 import dynamical_system
 import ds_func
+import variation
 import numpy as np
 import sympy as sp
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 from sympy import sin,cos
 from scipy import linalg
+
 
 def func(t, x, p, c):
     M1 = c[0]
@@ -16,7 +19,7 @@ def func(t, x, p, c):
     L2 = c[3]
     G = c[4]
 
-
+    
     a11 = M2 * L2 * L2 + (M1 + M2) * L1 * L1 + 2 * M2 * L1 * L2 * cos(x[2])
     a12 = M2 * L2 * L2 + M2 * L1 * L2 * cos(x[2])
     a21 = a12
@@ -31,12 +34,14 @@ def func(t, x, p, c):
         - p[1] * x[3])
     delta = a11 * a22 - a12 * a21
 
+
     ret = np.array([
         x[1],
         (b1 * a22 - b2 * a12) / delta,
         x[3],
         (b2 * a11 - b1 * a21) / delta
     ])
+
     return ret
 
 def main():
@@ -55,84 +60,54 @@ def main():
     ds.p = ds_func.sp2np(ds.params).flatten()
     # import numpy constant
     ds.c = ds_func.sp2np(ds.const).flatten()
+    ds.x0 = Eq_check(ds)
     Eigen(ds)
-    Eq_check(ds)
-    # ds.duration = 40
-    # ds.tick = 0.01
-    # ds.eval = np.arange(0, ds.duration, ds.tick)
-    # Alpha(ds)
-    # ds.state0 = ds.x_alpha[0,:].flatten()
-    # print(ds.state0)
-    # print(ds.state0)
-    # # solver
-    # ds.state = solve_ivp(func, (0, ds.duration), ds.state0, 
-    #     method='RK45', t_eval = ds.eval, args = (ds.p, ds.c), 
-    #     rtol=1e-12, vectorized = True)
-    # print(ds.state.t)
-    # # Condition(ds)
+    print(ds.xa[1,:])
+    z = np.concatenate([ds.xa[1,:],ds.xa[2,:]])
+    p = np.array([0,100,0,0])
+    z = np.concatenate([z,p])
+    z = sp.Matrix(z.reshape(12,1))
+    print("z",z)
+    print("z",z.shape)
+    print()
+    # f = ds_func.Condition(z,ds)
+    sym_F = ds_func.newton_F(ds.sym_z,ds)
+    print("sym_F= ",sym_F)
+    sym_J = sym_F.jacobian(ds.sym_z)
+    print("sym_J= ",sym_J)
+    F = sym_F.subs(ds.sym_z,z)
+    J = sym_J.subs(ds.sym_z,z)
+    F = ds_func.sp2np(F)
+    J = ds_func.sp2np(J)
+    print("F(subs)= ",F)
+    print("J(subs)= ",J)
+    # solve(ds)
 
-    # '''
-    # ##### for all eqpoints#####
-    # for i in range(ds.xdim):
-    #     delta_vec = eig_vr[:,i] * ds.delta
-    #     ds.x_alpha = np_eq + delta_vec
-    # '''
-    # print("x_alpha\n",ds.x_alpha)
-    # print("x_omega\n",ds.x_omega)
-    # Eq_check(ds)
-    # test = Condition(ds)
-    # # print("条件式テスト",test)
-    # jac_test = jac(ds)
-    # # print("ヤコビアンテスト",jac_test)
-
-def Alpha(ds):
-    eq = ds_func.equilibrium(ds)
-    ds.x0 = ds_func.sp2np(eq)
-    print("x0\n",ds.x0)
-    for i in range(4):
-        eig,eig_vl,eig_vr = ds_func.eigen(eq, ds, i)
-        ds.mu_alpha = eig[0]
-        ds.mu_omega = eig[1]
-
-        print("eigenvalue\n", eig)
-    eig,eig_vl,eig_vr = ds_func.eigen(eq, ds, 0)
-    ds.mu_alpha = eig[0]
-    ds.mu_omega = eig[1]
-
-
-    print("mu_alphaに対する固有ベクトル",eig_vr[:,0])
-    print("mu_omegaに対する固有ベクトル",eig_vr[:,1])
-    delta_alpha = eig_vr[:,0] * ds.delta
-    delta_omega = eig_vr[:,1] * ds.delta
-    print("delta_alpha", delta_alpha)
-    x_alpha = ds.x0 + delta_alpha
-    x_omega = ds.x0 + delta_omega
-
-    ds.x_alpha = x_alpha
-    ds.x_omega = x_omega
 
 def Eigen(ds):
     eq = ds_func.equilibrium(ds)
-    ds.x0 = ds_func.sp2np(eq)
-    ds.x0 = ds.x0[0,:]
+    x0 = ds_func.sp2np(eq)
+    x0 = x0[0,:]
     print("x0\n",ds.x0)
     # for i in range(4):
     #     eig,eig_vl,eig_vr = ds_func.eigen(eq, ds, i)
 
     eig,eig_vl,eig_vr = ds_func.eigen(eq, ds, 0)
     print("eigenvalue\n", eig)
+    ds.mu_alpha = eig[1]
+    ds.mu_omega = eig[2]
     eig_vr = eig_vr * (-1)
     print("eigen_vector",*eig_vr[:,].T,sep='\n')
     delta = eig_vr[:,].T * ds.delta
-    ds.xa = ds.x0 + delta
+    ds.xa = x0 + delta
 
     eig_vr = eig_vr * (-1)
     print("inverse_eigen_vector",*eig_vr[:,].T,sep='\n')
     delta = eig_vr[:,].T * ds.delta
-    ds.xb = ds.x0 + delta
+    ds.xb = x0 + delta
 
 
-    print("x0", ds.x0)
+    print("x0", x0)
     print("xa", ds.xa)
     print("xb", ds.xb)
 
@@ -146,9 +121,9 @@ def Eq_check(ds):
     #     F = ds.F.subs([(ds.sym_x, vp[0,:].T), (ds.sym_p, ds.params)])
     #     print(F'eq{i} = {F}')
 
+    J = ds.F.jacobian(ds.sym_x)
     for i in range(ds.iter_max):
         F = ds.F.subs([(ds.sym_x, vp), (ds.sym_p, ds.params)])
-        J = ds.F.jacobian(ds.sym_x)
         J = J.subs([(ds.sym_x, vp), (ds.sym_p, ds.params)])
         F = ds_func.sp2np(F)
         J = ds_func.sp2np(J)
@@ -198,24 +173,25 @@ def jac(ds):
     J = F.jacobian(ds.sym_x)
     return J
 
-
-
-# def eigtest(ds):
-#     a = np.array([[3,3],
-#                   [5,1]])
-#     print(a)
-#     print(a.shape)
-#     eig_test = linalg.eigvals(a)
-#     print("固有値テスト", eig_test)
-#     eig_vr = linalg.eig(a,left = False,right = True)[1]
-#     print("右固有ベクトル\n",eig_vr)
-#     eig_vl = linalg.eig(a,left = True,right = False)[1]
-#     print("左固有ベクトル\n",eig_vl)
-#     print(eig_vr[:,0])
-#     dot = eig_vr[:,0] @ eig_vl[:,1]
-#     print("内積\n", dot)
-
+def solve(ds):
+    ####solve####
+    # import numpy parameter
+    p = ds_func.sp2np(ds.params).flatten()
+    # import numpy constant
+    c = ds_func.sp2np(ds.const).flatten()
+    # convert initial value to numpy
+    ds.state0 = ds_func.sp2np(ds.x0).flatten()
     
+    vari_ini = np.eye(4).reshape(16,)
+    ds.state0 = np.concatenate([ds.state0,vari_ini])
+    print("initial value",ds.state0)
+    state = solve_ivp(variation.func, ds.duration, ds.state0,
+        method='RK45', args = (p, c), t_eval = ds.t_eval,
+        rtol=1e-12)
+    print(state.t)
+    print(state.y)
+
+
 
 if __name__ == '__main__':
     main()

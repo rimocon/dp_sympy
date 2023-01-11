@@ -1,0 +1,26 @@
+import sympy as sp
+
+
+x,y,z = sp.symbols('x, y, z')
+
+def f(x,y,z):
+    return x**2 + 2*y + z
+
+print(f(x,y,z))
+
+a = sp.Symbol('a')
+x = a
+print("a ver = ",f(x,y,z))
+
+p = sp.MatrixSymbol('p',2,1)
+z = sp.MatrixSymbol('z',4,1)
+def y(z,p):
+    ret = sp.Matrix([
+        z[0]*z[0] + 2*p[0],
+        2*z[1] + p[1]*p[1]
+    ])
+    return ret
+print("test",y(z,p))
+print(z)
+p = z[2:4,0]
+print("z_ver",y(z,p))
