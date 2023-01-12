@@ -80,6 +80,8 @@ def newton_F(z, ds):
     x0 = sp.Matrix(ds.x0).reshape(4,1)
     x_alpha = sp.Matrix([z[0],z[1],z[2],z[3]])
     x_omega = sp.Matrix([z[4],z[5],z[6],z[7]])
+    lamb = sp.Matrix([z[8],z[9],z[10],z[11]])
+    
     ret = sp.Matrix([
         # 固有ベクトル上にx_alphaが存在する条件(dfdx(x0,lambda) - mu_alpha I)@(x_alpha - x0)
         ((dfdx - ds.mu_alpha * I) @ (x_alpha - x0))[0:3,0],
@@ -88,5 +90,7 @@ def newton_F(z, ds):
         # x_omegaも同様
         ((dfdx - ds.mu_omega * I) @ (x_omega- x0))[0:3,0],
         ((x_omega- x0).T @ (x_omega- x0))[0,0] - ds.delta * ds.delta
+        # ds.state_p.y[0:4,-1] - ds.state_m.y[0:4,-1]
+        
     ])
     return ret

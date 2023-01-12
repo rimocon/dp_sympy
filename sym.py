@@ -1,5 +1,5 @@
 import sympy as sp
-
+import numpy as np
 
 x,y,z = sp.symbols('x, y, z')
 
@@ -24,3 +24,10 @@ print("test",y(z,p))
 print(z)
 p = z[2:4,0]
 print("z_ver",y(z,p))
+a = np.array([[1,2,3,4],
+            [5,6,7,8],
+            [9,10,11,12],
+            [13,14,15,16]])
+print("a= ",a)
+print("a 1retume",a[0:4,0])
+print("a 2retume",a[0:4,1])

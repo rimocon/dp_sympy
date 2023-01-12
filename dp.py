@@ -60,17 +60,18 @@ def main():
     ds.p = ds_func.sp2np(ds.params).flatten()
     # import numpy constant
     ds.c = ds_func.sp2np(ds.const).flatten()
+
+
+
     ds.x0 = Eq_check(ds)
     Eigen(ds)
-    print(ds.xa[1,:])
-    z = np.concatenate([ds.xa[1,:],ds.xa[2,:]])
+    solve(ds)
+    # ここのパラメタの入れ込み考え
+    # 多分vpとかを入れることになる
     p = np.array([0,100,0,0])
-    z = np.concatenate([z,p])
+    z = np.concatenate([ds.x_alpha,ds.x_omega,p])
     z = sp.Matrix(z.reshape(12,1))
     print("z",z)
-    print("z",z.shape)
-    print()
-    # f = ds_func.Condition(z,ds)
     sym_F = ds_func.newton_F(ds.sym_z,ds)
     print("sym_F= ",sym_F)
     sym_J = sym_F.jacobian(ds.sym_z)
@@ -81,7 +82,6 @@ def main():
     J = ds_func.sp2np(J)
     print("F(subs)= ",F)
     print("J(subs)= ",J)
-    # solve(ds)
 
 
 def Eigen(ds):
@@ -106,10 +106,12 @@ def Eigen(ds):
     delta = eig_vr[:,].T * ds.delta
     ds.xb = x0 + delta
 
-
+    ####ここは８本から２本選択
+    ds.x_alpha = ds.xa[1,:]
+    ds.x_omega = ds.xa[2,:]
     print("x0", x0)
-    print("xa", ds.xa)
-    print("xb", ds.xb)
+    print("x_alpha", ds.x_alpha)
+    print("x_omega", ds.x_omega)
 
 def Eq_check(ds):
     eq = ds_func.equilibrium(ds)
@@ -151,28 +153,6 @@ def Eq_check(ds):
 
 
 
-def Condition(ds):
-    F = sp.Matrix([
-        # (dfdx(x0,lambda0) - mu_alpha I)(x_alpha - x0)
-        (ds.dFdx.subs([(ds.sym_x, ds.x0.T), (ds.sym_p, ds.params)]) - ds.mu_alpha * np.eye(ds.xdim))
-        @ (ds.x_alpha - ds.x0).T,
-        # (dfdx(x0,lambda0) - mu_omegaI)(x_omega- x0)
-        (ds.dFdx.subs([(ds.sym_x, ds.x0.T), (ds.sym_p, ds.params)]) - ds.mu_omega * np.eye(ds.xdim))
-        @ (ds.x_omega - ds.x0).T,
-        # (x_alpha - x0)(x_alpha - x0)^T - delta^2 = 0
-        (ds.x_alpha - ds.x0) @ (ds.x_alpha - ds.x0).T - ds.delta * ds.delta ,
-        # (x_omega- x0)(x_omega - x0)^T - delta^2 = 0
-        (ds.x_omega - ds.x0) @ (ds.x_omega - ds.x0).T - ds.delta * ds.delta
-        # phi(xalpha,lambda0, tau) - phi(xomega, lambda0,-tau) = 0
-
-    ])
-    return F
-
-def jac(ds):
-    F = Condition(ds)
-    J = F.jacobian(ds.sym_x)
-    return J
-
 def solve(ds):
     ####solve####
     # import numpy parameter
@@ -180,16 +160,36 @@ def solve(ds):
     # import numpy constant
     c = ds_func.sp2np(ds.const).flatten()
     # convert initial value to numpy
-    ds.state0 = ds_func.sp2np(ds.x0).flatten()
+    # ds.state0 = ds_func.sp2np(ds.x0).flatten()
     
     vari_ini = np.eye(4).reshape(16,)
-    ds.state0 = np.concatenate([ds.state0,vari_ini])
-    print("initial value",ds.state0)
-    state = solve_ivp(variation.func, ds.duration, ds.state0,
-        method='RK45', args = (p, c), t_eval = ds.t_eval,
+    vari_param_ini = np.zeros(16)
+    print("initial param",vari_param_ini)
+    vari_ini = np.concatenate([vari_ini,vari_param_ini])
+    print("initial vari",vari_ini)
+    ds.x0_p = np.concatenate([ds.x_alpha,vari_ini])
+    ds.x0_m = np.concatenate([ds.x_omega,vari_ini])
+    print("initial value",ds.x0_p)
+
+    # for plus
+    # ds.state_p = solve_ivp(variation.func, ds.duration, ds.state0,
+    #     method='RK45', args = (p, c), t_eval = ds.t_eval,
+    #     rtol=1e-12)
+    ## argsのところもvpに変える必要がある
+    ds.state_p = solve_ivp(variation.func, ds.duration, ds.x0_p,
+        method='RK45', args = (p, c),
         rtol=1e-12)
-    print(state.t)
-    print(state.y)
+    print("y_p",ds.state_p.y)
+    ## for minus
+    # print("duration",ds.duration_m)
+    # print("eval",ds.t_eval_m)
+    # ds.state_m = solve_ivp(variation.func, ds.duration_m, ds.x0_m,
+    #     method='RK45', args = (p, c), 
+    #     rtol=1e-12)
+    # # print("t_m",ds.state_m.t)
+    # print("y_m",ds.state_m.y)
+    # a = ds.state_p.y[0:4,-1] - ds.state_m.y[0:4,-1]
+    # print("test",a)
 
 
 

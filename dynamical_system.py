@@ -55,6 +55,7 @@ class DynamicalSystem:
         
         self.F = map(self.sym_x, self.sym_p, self.const)
         self.dFdx = self.F.jacobian(self.sym_x)
+        self.dFdlambda = self.F.jacobian(self.sym_p)
         self.iter_max = 16
         self.eps = 1e-15
         self.explode = 100
@@ -69,8 +70,10 @@ class DynamicalSystem:
         #self.sym_p = self.sym_z[8:12,0]
         #for solver
         self.duration = [0,10]
+        self.duration_m = [0,-10]
         self.tick = 0.01
-        self.t_eval = np.arange(self.duration[0], self.duration[1],self.tick)
+        self.t_eval = np.arange(self.duration[0], self.duration[1], self.tick)
+        self.t_eval_m = np.arange(self.duration_m[1], self.duration_m[0], self.tick)[::-1]
 
         # for pp
         self.fig = plt.figure(figsize = (15, 8))
