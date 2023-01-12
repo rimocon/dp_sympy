@@ -84,16 +84,16 @@ def func(t, x, p, c):
     ## 初期値に関する変分方程式((phi_0 ~ phi_4) * (x00~x04)で16個)
     #ここもパラメタ代入できるように
     dFdx = ds_func.dFdx(eq,ds)
-    print("dFdx",dFdx)
-    dphidx = np.array(x[4:36])
+    # print("dFdx",dFdx)
+    dphidx = np.array(x[4:24])
     ## dFdx @ dphidx0 (要はtheta_10に関するやつ)
-    i_0 = (dFdx @ dphidx.reshape(32,1)[0:4]).reshape(4,)
+    i_0 = (dFdx @ dphidx.reshape(20,1)[0:4]).reshape(4,)
     ## dFdx @ dphidx1 (omega_10に関するやつ)
-    i_1 = (dFdx @ dphidx.reshape(32,1)[4:8]).reshape(4,)
+    i_1 = (dFdx @ dphidx.reshape(20,1)[4:8]).reshape(4,)
     ## dFdx @ dphidx2
-    i_2 = (dFdx @ dphidx.reshape(32,1)[8:12]).reshape(4,)
+    i_2 = (dFdx @ dphidx.reshape(20,1)[8:12]).reshape(4,)
     ## dFdx @ dphidx3
-    i_3 = (dFdx @ dphidx.reshape(32,1)[12:16]).reshape(4,)
+    i_3 = (dFdx @ dphidx.reshape(20,1)[12:16]).reshape(4,)
 
     ############initialだけ確認したい時用#####
     # dphidx = np.array(x[4:20])
@@ -110,18 +110,19 @@ def func(t, x, p, c):
     # ## パラメタに関する変分方程式
     dFdlambda = ds.dFdlambda.subs([(ds.sym_x, eq)])
     dFdlambda = ds_func.sp2np(dFdlambda)
-    # print("dfdlabda",dFdlambda)
+    print("dfdlabda",dFdlambda)
 
     ##この4本から3本だけでいい
     # lambda0に関する変分方程式(要はdphidk1 k1に関するやつ)
-    p_0 = (dFdx @ dphidx.reshape(32,1)[16:20] + dFdlambda[0:4,0].reshape(4,1)).reshape(4,)
-    # lambda1に関する変分方程式(dphidk2,k2に関するやつ)
-    p_1 = (dFdx @ dphidx.reshape(32,1)[20:24] + dFdlambda[0:4,1].reshape(4,1)).reshape(4,)
-    p_2 = (dFdx @ dphidx.reshape(32,1)[24:28] + dFdlambda[0:4,2].reshape(4,1)).reshape(4,)
-    p_3 = (dFdx @ dphidx.reshape(32,1)[28:32] + dFdlambda[0:4,3].reshape(4,1)).reshape(4,)
+    # p = (dFdx @ dphidx.reshape(20,1)[16:20] + dFdlambda[0:4,0].reshape(4,1)).reshape(4,)
+    # # lambda1に関する変分方程式(dphidk2,k2に関するやつ)
+    p = (dFdx @ dphidx.reshape(20,1)[16:20] + dFdlambda[0:4,1].reshape(4,1)).reshape(4,)
+    print(p)
+    # p = (dFdx @ dphidx.reshape(20,1)[16:20] + dFdlambda[0:4,2].reshape(4,1)).reshape(4,)
+    # p = (dFdx @ dphidx.reshape(20,1)[16:20] + dFdlambda[0:4,3].reshape(4,1)).reshape(4,)
     ## 元の微分方程式+変分方程式に結合
-    ret = np.concatenate([ret,i_0,i_1,i_2,i_3,p_0,p_1,p_2,p_3])
-    print(ret)
+    ret = np.concatenate([ret,i_0,i_1,i_2,i_3,p])
+    print("ret=",ret)
     return ret 
 
 

@@ -305,7 +305,7 @@ def show_params(ds):
     for i in range(len(params)):
         s += f"x{i}:{x0[i]:.5f},"
         p += f"p{i}:{params[i]:.4f},"
-    #plt.title(s+"\n"+p, color = 'blue')
+    plt.title(s+"\n"+p, color = 'blue')
 
 if __name__ == '__main__':
     main()

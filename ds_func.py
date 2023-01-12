@@ -89,8 +89,9 @@ def newton_F(z, ds):
         ((x_alpha - x0).T @ (x_alpha - x0))[0,0] - ds.delta * ds.delta,
         # x_omegaも同様
         ((dfdx - ds.mu_omega * I) @ (x_omega- x0))[0:3,0],
-        ((x_omega- x0).T @ (x_omega- x0))[0,0] - ds.delta * ds.delta
-        # ds.state_p.y[0:4,-1] - ds.state_m.y[0:4,-1]
+        ((x_omega- x0).T @ (x_omega- x0))[0,0] - ds.delta * ds.delta,
+        # 解が一致する条件
+        ds.state_p.y[0:4,-1] - ds.state_m.y[0:4,-1]
         
     ])
     return ret

@@ -163,7 +163,7 @@ def solve(ds):
     # ds.state0 = ds_func.sp2np(ds.x0).flatten()
     
     vari_ini = np.eye(4).reshape(16,)
-    vari_param_ini = np.zeros(16)
+    vari_param_ini = np.zeros(4)
     print("initial param",vari_param_ini)
     vari_ini = np.concatenate([vari_ini,vari_param_ini])
     print("initial vari",vari_ini)
@@ -180,6 +180,7 @@ def solve(ds):
         method='RK45', args = (p, c),
         rtol=1e-12)
     print("y_p",ds.state_p.y)
+    print("y0 - y4",ds.state_p.y[0:4,-1])
     ## for minus
     # print("duration",ds.duration_m)
     # print("eval",ds.t_eval_m)

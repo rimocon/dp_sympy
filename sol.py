@@ -84,9 +84,11 @@ def main():
     # solve
     ##################################################
     duration = [0,20] 
+    duration_m = [duration[0],-duration[1]]
     tick = 0.01
     t_eval = np.arange(duration[0],duration[1],tick)
-    print(t_eval)
+    t_eval_m = np.arange(duration_m[1],duration_m[0],tick)[::-1]
+    print(t_eval_m)
     # import numpy parameter
     p = ds_func.sp2np(ds.params).flatten()
     # import numpy constant
@@ -97,36 +99,52 @@ def main():
     ds.eq = ds_func.sp2np(eq)
 
     ds.state0 = ds.eq[0,:].flatten()
-    
-    state = solve_ivp(func, duration, ds.x0,
-        method='RK45', args = (p, c), t_eval = t_eval,
+    x_alpha = ds.xa[1,:]
+    x_omega = ds.xa[2,:]
+    state_p = solve_ivp(func, duration, x_alpha,
+        method='RK45', args = (p, c),
         rtol=1e-12)
-    print(state.t)
+    state_m = solve_ivp(func, duration_m, x_omega,
+        method='RK45', args = (p, c),
+        rtol=1e-12)
+    print("t-p",state_p.t)
+    print("y-p",state_p.y)
+    print("t-m",state_m.t)
+    print("y-m",state_m.y)
     label = "stable"
     color = (1.0, 0.0, 0.0)
-    for i in range(4):
-        a = solve_ivp(func, duration, ds.xa[i,:],
-            method='RK45', args = (p, c), max_step=tick,
-            rtol=1e-12)
-        b = solve_ivp(func, duration, ds.xb[i,:],
-            method='RK45', args = (p, c), max_step=tick,
-            rtol=1e-12)
-        if i >= 2:
-            label = "unstable"
-            color = (0.0, 0.0, 1.0)
-        ds.ax2.plot(a.y[0,:], a.y[1,:],
+
+    ds.ax2.plot(state_p.y[0,:], state_p.y[1,:],
             linewidth=1, color = color,
             label = label,ls="-")
-        ds.ax2.plot(b.y[0,:], b.y[1,:],
-            linewidth=1, color = color, 
+    color = (0.0, 0.0, 1.0)
+    ds.ax2.plot(state_m.y[0,:], state_m.y[1,:],
+            linewidth=1, color = color,
             label = label,ls="-")
+    
+    # for i in range(4):
+    #     a = solve_ivp(func, duration, ds.xa[i,:],
+    #         method='RK45', args = (p, c), max_step=tick,
+    #         rtol=1e-12)
+    #     b = solve_ivp(func, duration, ds.xb[i,:],
+    #         method='RK45', args = (p, c), max_step=tick,
+    #         rtol=1e-12)
+    #     if i >= 2:
+    #         label = "unstable"
+    #         color = (0.0, 0.0, 1.0)
+    #     ds.ax2.plot(a.y[0,:], a.y[1,:],
+    #         linewidth=1, color = color,
+    #         label = label,ls="-")
+    #     ds.ax2.plot(b.y[0,:], b.y[1,:],
+    #         linewidth=1, color = color, 
+    #         label = label,ls="-")
 
     ##################################################
     # plot
     ##################################################
     show_param(ds)
-    ds.ax2.set_xlim(ds.xrange)
-    ds.ax2.set_ylim(ds.yrange)
+    #ds.ax2.set_xlim(ds.xrange)
+    # ds.ax2.set_ylim(ds.yrange)
     ds.ax2.grid(c='gainsboro', ls='--', zorder=9)
 
 
