@@ -84,11 +84,10 @@ def main():
     # solve
     ##################################################
     duration = [0,20] 
-    duration_m = [duration[0],-duration[1]]
+    duration_m = [-20,0]
     tick = 0.01
-    t_eval = np.arange(duration[0],duration[1],tick)
-    t_eval_m = np.arange(duration_m[1],duration_m[0],tick)[::-1]
-    print(t_eval_m)
+    # print("plus",t_eval)
+    # print("minus",t_eval_m)
     # import numpy parameter
     p = ds_func.sp2np(ds.params).flatten()
     # import numpy constant
@@ -104,11 +103,11 @@ def main():
     state_p = solve_ivp(func, duration, x_alpha,
         method='RK45', args = (p, c),
         rtol=1e-12)
+    print("t-p",state_p.t)
+    print("y-p",state_p.y)
     state_m = solve_ivp(func, duration_m, x_omega,
         method='RK45', args = (p, c),
         rtol=1e-12)
-    print("t-p",state_p.t)
-    print("y-p",state_p.y)
     print("t-m",state_m.t)
     print("y-m",state_m.y)
     label = "stable"
@@ -118,6 +117,8 @@ def main():
             linewidth=1, color = color,
             label = label,ls="-")
     color = (0.0, 0.0, 1.0)
+
+    label = "unstable"
     ds.ax2.plot(state_m.y[0,:], state_m.y[1,:],
             linewidth=1, color = color,
             label = label,ls="-")

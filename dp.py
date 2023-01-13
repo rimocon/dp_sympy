@@ -12,7 +12,7 @@ from sympy import sin,cos
 from scipy import linalg
 
 
-def func(t, x, p, c):
+def func(x, p, c):
     M1 = c[0]
     M2 = c[1]
     L1 = c[2]
@@ -61,34 +61,48 @@ def main():
     # import numpy constant
     ds.c = ds_func.sp2np(ds.const).flatten()
 
+   
 
+    tau = 10
+    ds.x0 = Eq_check(ds.params,ds)
+    Eigen(ds.x0,ds.params,ds)
+    vp = np.block([ds.x_alpha,ds.x_omega,ds.p[ds.var],ds.duration[1]])
+    print("vpshape",vp.shape)
+    # ds.sym_F = ds_func.newton_F(ds.sym_z,ds)
+    # print("sym_F= ",ds.sym_F)
+    # ds.sym_J = ds.sym_F.jacobian(ds.sym_z)
+    # print("sym_J= ",ds.sym_J)
+    newton_method(vp,ds)
+   
 
-    ds.x0 = Eq_check(ds)
-    Eigen(ds)
-    solve(ds)
-    # ここのパラメタの入れ込み考え
-    # 多分vpとかを入れることになる
-    p = np.array([0,100,0,0])
-    z = np.concatenate([ds.x_alpha,ds.x_omega,p])
-    z = sp.Matrix(z.reshape(12,1))
-    print("z",z)
-    sym_F = ds_func.newton_F(ds.sym_z,ds)
-    print("sym_F= ",sym_F)
-    sym_J = sym_F.jacobian(ds.sym_z)
-    print("sym_J= ",sym_J)
-    F = sym_F.subs(ds.sym_z,z)
-    J = sym_J.subs(ds.sym_z,z)
+def Condition(z,ds):
+    F = ds.sym_F.subs(ds.sym_z,z)
+    J = ds.sym_J.subs(ds.sym_z,z)
     F = ds_func.sp2np(F)
     J = ds_func.sp2np(J)
-    print("F(subs)= ",F)
-    print("J(subs)= ",J)
+    dFdlambda = J[:,8+ds.var].reshape(10,1)
+    dFdtau = np.zeros((10,1))
+    J = np.block([[J[:,0:8],dFdlambda,dFdtau]])
+    # state_p = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24])
+    # state_m = -1 * state_p
+    for i in range(0,4):
+        # dphidlambda(plus) - dphidlambda(minus)
+        J[i+6][8] = ds.state_p.y[20+i,-1] - ds.state_m.y[20+i,-1]
+        J[i+6][9] = 1
+        for j in range(0,4):
+            # dphidxalpha ~ dphidxomega
+            J[i+6][j] = ds.state_p.y[4+i+4*j,-1]
+            J[i+6][j+4] = ds.state_m.y[4+i+4*j,-1]
+    return F,J
 
 
-def Eigen(ds):
-    eq = ds_func.equilibrium(ds)
+def Eigen(x0,p,ds):
+    #パラメータに依存するように
+    # eq = ds_func.equilibrium(ds)
+    eq = ds_func.set_x0(p,ds.c) 
     x0 = ds_func.sp2np(eq)
     x0 = x0[0,:]
-    print("x0\n",ds.x0)
+    print("x0\n",x0)
     # for i in range(4):
     #     eig,eig_vl,eig_vr = ds_func.eigen(eq, ds, i)
 
@@ -113,8 +127,8 @@ def Eigen(ds):
     print("x_alpha", ds.x_alpha)
     print("x_omega", ds.x_omega)
 
-def Eq_check(ds):
-    eq = ds_func.equilibrium(ds)
+def Eq_check(p,ds):
+    eq = ds_func.set_x0(p,ds.c)
     vp = eq[0,:].T
     vp = sp.Matrix(vp)
     print("eq=",vp)
@@ -125,8 +139,8 @@ def Eq_check(ds):
 
     J = ds.F.jacobian(ds.sym_x)
     for i in range(ds.iter_max):
-        F = ds.F.subs([(ds.sym_x, vp), (ds.sym_p, ds.params)])
-        J = J.subs([(ds.sym_x, vp), (ds.sym_p, ds.params)])
+        F = ds.F.subs([(ds.sym_x, vp), (ds.sym_p, p)])
+        J = J.subs([(ds.sym_x, vp), (ds.sym_p, p)])
         F = ds_func.sp2np(F)
         J = ds_func.sp2np(J)
         # print(F'eq{1} = {F}')
@@ -143,6 +157,8 @@ def Eq_check(ds):
             exit()
             # vn = xk+1
             # print("vp=",vp)
+        test = np.linalg.solve(J,-F)
+        print(test)
         vn = np.linalg.solve(J,-F) + vp
         print("i=",i)
         print("vn=",vn)
@@ -153,46 +169,71 @@ def Eq_check(ds):
 
 
 
-def solve(ds):
+def solve(vp,ds):
     ####solve####
     # import numpy parameter
+    # パラメータ
     p = ds_func.sp2np(ds.params).flatten()
     # import numpy constant
     c = ds_func.sp2np(ds.const).flatten()
-    # convert initial value to numpy
-    # ds.state0 = ds_func.sp2np(ds.x0).flatten()
-    
-    vari_ini = np.eye(4).reshape(16,)
-    vari_param_ini = np.zeros(4)
-    print("initial param",vari_param_ini)
-    vari_ini = np.concatenate([vari_ini,vari_param_ini])
-    print("initial vari",vari_ini)
-    ds.x0_p = np.concatenate([ds.x_alpha,vari_ini])
-    ds.x0_m = np.concatenate([ds.x_omega,vari_ini])
+    p[ds.var] = vp[8]
+    print("ppppppp",p)
+    print("vp",vp)
+    ds.x0_p = np.concatenate([vp[0:4],ds.vari_ini])
+    ds.x0_m = np.concatenate([vp[4:8],ds.vari_ini])
     print("initial value",ds.x0_p)
 
     # for plus
-    # ds.state_p = solve_ivp(variation.func, ds.duration, ds.state0,
-    #     method='RK45', args = (p, c), t_eval = ds.t_eval,
-    #     rtol=1e-12)
-    ## argsのところもvpに変える必要がある
-    ds.state_p = solve_ivp(variation.func, ds.duration, ds.x0_p,
+    ds.state_p = solve_ivp(variation.func, [0,vp[9]], ds.x0_p,
         method='RK45', args = (p, c),
         rtol=1e-12)
     print("y_p",ds.state_p.y)
     print("y0 - y4",ds.state_p.y[0:4,-1])
     ## for minus
-    # print("duration",ds.duration_m)
-    # print("eval",ds.t_eval_m)
-    # ds.state_m = solve_ivp(variation.func, ds.duration_m, ds.x0_m,
-    #     method='RK45', args = (p, c), 
-    #     rtol=1e-12)
+    ds.state_m = solve_ivp(variation.func, [-vp[9],0], ds.x0_m,
+        method='RK45', args = (p, c), 
+        rtol=1e-12)
     # # print("t_m",ds.state_m.t)
-    # print("y_m",ds.state_m.y)
-    # a = ds.state_p.y[0:4,-1] - ds.state_m.y[0:4,-1]
-    # print("test",a)
+    print("y_m",ds.state_m.y)
+    a = ds.state_p.y[0:4,-1] - ds.state_m.y[0:4,-1]
+    print("test",a)
 
-
+# ニュートン法
+def newton_method(vp,ds):
+    p = ds.p
+    for i in range(ds.ite_max): 
+        # パラメタだけセットsetto
+        p[ds.var] = vp[8]
+        # 微分方程式+変分方程式を初期値vpで解く   
+        solve(vp,ds)
+        z = np.block([vp[0:4],vp[4:8],p])
+        z = sp.Matrix(z.reshape(12,1))
+        #######ここ1回だけでいいからどうにかしたい・・・
+        ds.sym_F = ds_func.newton_F(ds.sym_z,ds)
+        print("sym_F= ",ds.sym_F)
+        ds.sym_J = ds.sym_F.jacobian(ds.sym_z)
+        print("sym_J= ",ds.sym_J)
+        ################################3
+        F,J = Condition(z,ds)
+        print("F",F)
+        print("Fshape",F.shape)
+        print("J",J)
+        print("J shape",J)
+        dif = abs(np.linalg.norm(F))
+        print("diff=",dif)
+        if dif < ds.eps:
+            print("success!!!")
+            print("solve vp = ",vp)
+            return vp
+        if dif > ds.explode:
+            print("Exploded")
+            exit()
+        test = np.linalg.solve(J,-F)
+        print("test=",test)
+        vn = np.linalg.solve(J,-F).flatten() + vp
+        print("vn=",vn)
+        vp = vn
+        
 
 if __name__ == '__main__':
     main()

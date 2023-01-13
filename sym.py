@@ -21,13 +21,18 @@ def y(z,p):
     ])
     return ret
 print("test",y(z,p))
-print(z)
-p = z[2:4,0]
+# p = z[2:4,0]
+print("pshape",p.shape)
+# p[0:1,0] = z[2:3,0]
 print("z_ver",y(z,p))
-a = np.array([[1,2,3,4],
-            [5,6,7,8],
-            [9,10,11,12],
-            [13,14,15,16]])
-print("a= ",a)
-print("a 1retume",a[0:4,0])
-print("a 2retume",a[0:4,1])
+# a = np.array([[1,2,3,4],
+#             [5,6,7,8],
+#             [9,10,11,12],
+#             [13,14,15,16]])
+# print("a= ",a)
+# print("a 1retume",a[0:4,0])
+# print("a 2retume",a[0:4,1])
+# sp_a = sp.Matrix([a[0:4,0]])
+# print("sp_a",sp_a)
+# jac_a = sp_a.jacobian(z)
+# print(jac_a)

@@ -14,6 +14,17 @@ def equilibrium(ds):
         [-t1, 0, -t2 + t1, 0]
     ])
     return eqpoints
+def set_x0(p,c):
+    t1 = sp.acos((p[2] - p[3]) / ((c[0] + c[1]) * c[2] * c[4]))
+    t2 = sp.acos(p[3] / (c[1] * c[3] * c[4])) 
+
+    eqpoints = sp.Matrix([
+        [t1, 0, t2 - t1, 0],
+        [-t1, 0, t2 + t1, 0],
+        [t1, 0, -t2 - t1, 0],
+        [-t1, 0, -t2 + t1, 0]
+    ])
+    return eqpoints
 
 def eigen(x0, ds, n):
 
@@ -44,54 +55,36 @@ def sp2np(x):
     return sp.matrix2numpy(x, dtype = np.float64)
 
 
-def dFdx(x, ds):
-    dfdx = ds.dFdx.subs([(ds.sym_x, x), (ds.sym_p, ds.params)])
+def dFdx(x, p, ds):
+    dfdx = ds.dFdx.subs([(ds.sym_x, x), (ds.sym_p, p)])
     return sp2np(dfdx)
 
 
-def Condition(z,ds):
-    dfdx = ds.dFdx.subs([(ds.sym_x, ds.x0), (ds.sym_p, ds.params)])
-    print(dfdx)
-    I = sp.eye(4)
-    x0 = sp.Matrix(ds.x0).reshape(4,1)
-    x_alpha = sp.Matrix([z[0],z[1],z[2],z[3]])
-    x_omega = sp.Matrix([z[4],z[5],z[6],z[7]])
-    print("x_alpha",x_alpha)
-    print("x_omega",x_omega)
-    print("mu_alpha",ds.mu_alpha)
-    print("mu_alpha",ds.mu_omega)
-    sym_F = sp.Matrix([
-        # 固有ベクトル上にx_alphaが存在する条件(dfdx(x0,lambda) - mu_alpha I)@(x_alpha - x0)
-        (dfdx - ds.mu_alpha * I) @ (x_alpha - x0),
-        ((x_alpha - x0).T @ (x_alpha - x0))[0,0] - ds.delta * ds.delta,
-        (dfdx - ds.mu_omega * I) @ (x_omega- x0),
-        ((x_omega- x0).T @ (x_omega- x0))[0,0] - ds.delta * ds.delta
-    ])
-    
-    f = sp2np(sym_F)
-    print(f)
-    print(sym_F)
-
 def newton_F(z, ds):
 
+    ##ここちょっと分かってない
     dfdx = ds.dFdx_n.subs([(ds.sym_x, ds.x0)])
     print("dfdx",dfdx)
     I = sp.eye(4)
     x0 = sp.Matrix(ds.x0).reshape(4,1)
     x_alpha = sp.Matrix([z[0],z[1],z[2],z[3]])
     x_omega = sp.Matrix([z[4],z[5],z[6],z[7]])
-    lamb = sp.Matrix([z[8],z[9],z[10],z[11]])
-    
+    ##phi(x_alpha) - phi(x_omega)
+    # homo = np.array([6,-0.2,0.2,3])
+    homo = ds.state_p.y[0:4,-1] - ds.state_m.y[0:4,-1]
     ret = sp.Matrix([
         # 固有ベクトル上にx_alphaが存在する条件(dfdx(x0,lambda) - mu_alpha I)@(x_alpha - x0)
-        ((dfdx - ds.mu_alpha * I) @ (x_alpha - x0))[0:3,0],
+        ((dfdx - ds.mu_alpha * I) @ (x_alpha - x0))[0:2,0],
         # deltaだけ離れた点である条件
         ((x_alpha - x0).T @ (x_alpha - x0))[0,0] - ds.delta * ds.delta,
         # x_omegaも同様
-        ((dfdx - ds.mu_omega * I) @ (x_omega- x0))[0:3,0],
+        ((dfdx - ds.mu_omega * I) @ (x_omega- x0))[0:2,0],
         ((x_omega- x0).T @ (x_omega- x0))[0,0] - ds.delta * ds.delta,
         # 解が一致する条件
-        ds.state_p.y[0:4,-1] - ds.state_m.y[0:4,-1]
-        
+        [homo[0]],
+        [homo[1]],
+        [homo[2]],
+        [homo[3]]
     ])
+    print(ret.shape)
     return ret

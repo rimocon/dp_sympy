@@ -70,10 +70,23 @@ class DynamicalSystem:
         #self.sym_p = self.sym_z[8:12,0]
         #for solver
         self.duration = [0,10]
-        self.duration_m = [0,-10]
+        self.duration_m = [-10,0]
         self.tick = 0.01
-        self.t_eval = np.arange(self.duration[0], self.duration[1], self.tick)
-        self.t_eval_m = np.arange(self.duration_m[1], self.duration_m[0], self.tick)[::-1]
+        self.vari_ini = np.eye(4).reshape(16,)
+        self.vari_param_ini = np.zeros(4)
+        self.vari_ini = np.concatenate([self.vari_ini,self.vari_param_ini])
+        # self.t_eval = np.arange(self.duration[0], self.duration[1], self.tick)
+        # self.t_eval_m = np.arange(self.duration_m[1], self.duration_m[0], self.tick)[::-1]
+
+
+        # for newton method
+        self.ite_max = 16
+        self.eps = 1e-8
+        self.explode = 100
+        # self.state_p = []
+        # self.state_m = []
+        # self.state_p.y = np.zeros([24,1])
+        # self.state_m.y = np.zeros([24,1])
 
         # for pp
         self.fig = plt.figure(figsize = (15, 8))
