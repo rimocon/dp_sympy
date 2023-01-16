@@ -67,7 +67,7 @@ def func(t, x, p, c):
         x[3],
         (b2 * a11 - b1 * a21) / delta
     ])
-    print("ret",ret)
+    # print("ret",ret)
     return ret
 
 def main():
@@ -84,8 +84,9 @@ def main():
     ##################################################
     # solve
     ##################################################
-    duration = [0,20] 
-    duration_m = [-20,0]
+    a = 5
+    duration = [0,a] 
+    duration_m = [-a,0]
     tick = 0.01
     # print("plus",t_eval)
     # print("minus",t_eval_m)
@@ -104,23 +105,25 @@ def main():
     state_p = solve_ivp(func, duration, x_alpha,
         method='RK45', args = (p, c),
         rtol=1e-12)
-    print("t-p",state_p.t)
+    # print("t-p",state_p.t)
     print("y-p",state_p.y)
     state_m = solve_ivp(func, duration_m, x_omega,
         method='RK45', args = (p, c),
         rtol=1e-12)
-    print("t-m",state_m.t)
+    # print("t-m",state_m.t)
     print("y-m",state_m.y)
+
+    fig = plt.figure(figsize = (16, 8))
+
     label = "stable"
-    color = (1.0, 0.0, 0.0)
+    # color = (1.0, 0.0, 0.0)
+    # plt.plot(state_p.y[0,:], state_p.y[1,:],
+    #         linewidth=1, color = color,
+    #         label = label,ls="-")
 
-    ds.ax2.plot(state_p.y[0,:], state_p.y[1,:],
-            linewidth=1, color = color,
-            label = label,ls="-")
     color = (0.0, 0.0, 1.0)
-
     label = "unstable"
-    ds.ax2.plot(state_m.y[0,:], state_m.y[1,:],
+    plt.plot(state_m.y[0,:], state_m.y[1,:],
             linewidth=1, color = color,
             label = label,ls="-")
     
@@ -147,14 +150,13 @@ def main():
     show_param(ds)
     #ds.ax2.set_xlim(ds.xrange)
     # ds.ax2.set_ylim(ds.yrange)
-    ds.ax2.grid(c='gainsboro', ls='--', zorder=9)
+    # ds.ax2.grid(c='gainsboro', ls='--', zorder=9)
 
 
     # ds.ax2.plot(state.y[0,:], state.y[1,:],
     #         linewidth=1,color = (0.0, 0.0, 0.0),
     #         label = "state0",ls="-")
-
-    ds.ax2.legend()
+    plt.legend()
     plt.show()
 
 def show_param(ds):

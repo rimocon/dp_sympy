@@ -115,25 +115,28 @@ def func(t, x, p, c):
     ## dFdx @ dphidx3
     i_3 = (dFdx @ dphidx.reshape(20,1)[12:16]).reshape(4,)
 
-    ############initialだけ確認したい時用#####
-    # dphidx = np.array(x[4:20])
-    # ## dFdx @ dphidx0 (要はtheta_10に関するやつ)
-    # i_0 = (dFdx @ dphidx.reshape(16,1)[0:4]).reshape(4,)
-    # ## dFdx @ dphidx1 (omega_10に関するやつ)
-    # i_1 = (dFdx @ dphidx.reshape(16,1)[4:8]).reshape(4,)
-    # ## dFdx @ dphidx2
-    # i_2 = (dFdx @ dphidx.reshape(16,1)[8:12]).reshape(4,)
-    # ## dFdx @ dphidx3
-    # i_3 = (dFdx @ dphidx.reshape(16,1)[12:16]).reshape(4,)
-
-
     # ## パラメタに関する変分方程式
-    dFdlambda = ds.dFdlambda.subs([(ds.sym_x, phi),(ds.sym_p, sp_p)])
-    dFdlambda = ds_func.sp2np(dFdlambda)
+    # dFdlambda = ds.dFdlambda.subs([(ds.sym_x, phi),(ds.sym_p, sp_p)])
+    # dFdlambda = ds_func.sp2np(dFdlambda)
     # print("dfdlabda",dFdlambda)
 
+    dFdl = np.array([[0, 0, 0, 0],
+    # 2行目
+    [-1.0*x[1]/(-(1.0*cos(x[2]) + 1.0)**2 + 2.0*cos(x[2]) + 3.0),
+    -(-1.0*cos(x[2]) - 1.0)*x[3]/(-(1.0*cos(x[2]) + 1.0)**2 + 2.0*cos(x[2]) + 3.0), 
+    1.0/(-(1.0*cos(x[2]) + 1.0)**2 + 2.0*cos(x[2]) + 3.0),
+    (-1.0*cos(x[2]) - 1.0)/(-(1.0*cos(x[2]) + 1.0)**2 + 2.0*cos(x[2]) + 3.0)],
+    [0, 0 ,0, 0],
+    # 4行目
+    [-(-1.0*cos(x[2]) - 1.0)*x[1]/(-(1.0*cos(x[2]) + 1.0)**2 + 2.0*cos(x[2]) + 3.0),
+    -(2.0*cos(x[2]) + 3.0)*x[3]/(-(1.0*cos(x[2]) + 1.0)**2 + 2.0*cos(x[2]) + 3.0), 
+    (-1.0*cos(x[2]) - 1.0)/(-(1.0*cos(x[2]) + 1.0)**2 + 2.0*cos(x[2]) + 3.0),
+    (2.0*cos(x[2]) + 3.0)/(-(1.0*cos(x[2]) + 1.0)**2 + 2.0*cos(x[2]) + 3.0)]
+    ])
+    print("dfdl",dFdl)
+
     ##この4本から3本だけでいい
-    p = (dFdx @ dphidx.reshape(20,1)[16:20] + dFdlambda[0:4,ds.var].reshape(4,1)).reshape(4,)
+    p = (dFdx @ dphidx.reshape(20,1)[16:20] + dFdl[0:4,ds.var].reshape(4,1)).reshape(4,)
     # lambda0に関する変分方程式(要はdphidk1 k1に関するやつ)
     # p = (dFdx @ dphidx.reshape(20,1)[16:20] + dFdlambda[0:4,0].reshape(4,1)).reshape(4,)
     # # lambda1に関する変分方程式(dphidk2,k2に関するやつ)

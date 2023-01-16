@@ -149,7 +149,7 @@ F = map(sym_x, sym_p, const)
 dFdx = F.jacobian(sym_x)
 dFdlambda = F.jacobian(sym_p)
 
-print("dFdx",dFdx)
+# print("dFdx",dFdx)
 print("dFdlambda",dFdlambda)
 
 ds.p = ds_func.sp2np(ds.params).flatten()

@@ -69,8 +69,8 @@ class DynamicalSystem:
 
         #self.sym_p = self.sym_z[8:12,0]
         #for solver
-        self.duration = [0,10]
-        self.duration_m = [-10,0]
+        self.duration = [0,json['tau']]
+        self.duration_m = [-json['tau'],0]
         self.tick = 0.01
         self.vari_ini = np.eye(4).reshape(16,)
         self.vari_param_ini = np.zeros(4)
@@ -90,7 +90,7 @@ class DynamicalSystem:
 
         # for pp
         self.fig = plt.figure(figsize = (15, 8))
-        # self.ax = self.fig.add_subplot(121)
+        self.ax = self.fig.add_subplot(121)
         self.ax2 = self.fig.add_subplot(111)
         self.running = True
         self.xrange = json['xrange']
