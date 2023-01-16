@@ -43,7 +43,7 @@ def map(x, p, c):
 
 
 
-def func(t, x, p, c):
+def func(t, x, p, c, ds):
     M1 = c[0]
     M2 = c[1]
     L1 = c[2]
@@ -81,7 +81,7 @@ def func(t, x, p, c):
                       [p[3]]])
     ## 初期値に関する変分方程式((phi_0 ~ phi_4) * (x00~x04)で16個)
     #ここもパラメタ代入できるように
-
+    print(ds_func.dFdx)
     dFdx = ds_func.dFdx(phi,sp_p,ds)
     # print("dFdx",dFdx)
     dphidx = np.array(x[4:24])
@@ -121,7 +121,7 @@ def func(t, x, p, c):
     # p = (dFdx @ dphidx.reshape(20,1)[16:20] + dFdlambda[0:4,2].reshape(4,1)).reshape(4,)
     # p = (dFdx @ dphidx.reshape(20,1)[16:20] + dFdlambda[0:4,3].reshape(4,1)).reshape(4,)
     ## 元の微分方程式+変分方程式に結合
-    ret = np.concatenate([ret,i_0,i_1,i_2,i_3,p])
+    ret = np.block([ret,i_0,i_1,i_2,i_3,p])
     # print("ret",ret)
     return ret 
 
@@ -137,6 +137,20 @@ fd.close()
 # input data to constructor
 ds = dynamical_system.DynamicalSystem(json_data)
 
+sym_x = sp.MatrixSymbol('x', 4, 1)
+sym_p = sp.MatrixSymbol('p', 4,1)
+sym_z = sp.MatrixSymbol('z', 12, 1)
+sym_pp = sp.MatrixSymbol('p', 4,1)
+sym_pp = sym_z[8:12,0]
+const = sp.Matrix([json_data['const']])
+
+
+F = map(sym_x, sym_p, const)
+dFdx = F.jacobian(sym_x)
+dFdlambda = F.jacobian(sym_p)
+
+print("dFdx",dFdx)
+print("dFdlambda",dFdlambda)
 
 ds.p = ds_func.sp2np(ds.params).flatten()
 # import numpy constant
@@ -155,10 +169,10 @@ ds.x0_m = np.concatenate([ds.x_omega,vari_ini])
 print("initial value",ds.x0_p)
 
 ds.state_p = solve_ivp(func, ds.duration, ds.x0_p,
-        method='RK45', args = (ds.p, ds.c),
+        method='RK45', args = (ds.p, ds.c,ds),
         rtol=1e-12)
 ds.state_m = solve_ivp(func, ds.duration_m, ds.x0_m,
-        method='RK45', args = (ds.p, ds.c), 
+        method='RK45', args = (ds.p, ds.c,ds), 
         rtol=1e-12)
 print("y_p=",ds.state_p.y)
 print("y_m=",ds.state_m.y)

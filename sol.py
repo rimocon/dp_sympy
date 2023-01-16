@@ -67,6 +67,7 @@ def func(t, x, p, c):
         x[3],
         (b2 * a11 - b1 * a21) / delta
     ])
+    print("ret",ret)
     return ret
 
 def main():

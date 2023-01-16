@@ -8,7 +8,7 @@ import numpy as np
 import sympy as sp
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
-from sympy import sin,cos
+from numpy import sin,cos
 from scipy import linalg
 
 

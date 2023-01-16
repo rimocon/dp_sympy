@@ -25,6 +25,10 @@ print("test",y(z,p))
 print("pshape",p.shape)
 # p[0:1,0] = z[2:3,0]
 print("z_ver",y(z,p))
+s = 2
+print(s)
+p = s **3
+print(p)
 # a = np.array([[1,2,3,4],
 #             [5,6,7,8],
 #             [9,10,11,12],
