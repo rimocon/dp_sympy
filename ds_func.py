@@ -26,6 +26,7 @@ def set_x0(p,c):
         [-t1, 0, -t2 + t1, 0]
     ])
     return eqpoints
+
 def x0(p,c):
     t1 = np.arccos((p[2] - p[3]) / ((c[0] + c[1]) * c[2] * c[4]))
     t2 = np.arccos(p[3] / (c[1] * c[3] * c[4])) 
@@ -37,14 +38,17 @@ def x0(p,c):
         [-t1, 0, -t2 + t1, 0]
     ])
     return eqpoints
-def eigen(x0, ds, n):
+def eigen(x0, p, ds):
 
     # subs eqpoints for jacobian(df/dx(x0)) 
     # jac = ds.dFdx.subs([(ds.sym_x, x0), (ds.sym_p, ds.params)])
     # for all eqpoints
-    jac = ds.dFdx.subs([(ds.sym_x, x0.T.col(n)), (ds.sym_p, ds.params)])
+    p = sp.Matrix(p)
+    # print(x0)
+    jac = ds.dFdx.subs([(ds.sym_x, x0), (ds.sym_p, p)])
     # convert to numpy
     np_jac = sp2np(jac)
+    # print("#############jac",np_jac)
     # calculate eigen values,eigen vectors
     eig_vals,eig_vl, eig_vr = linalg.eig(np_jac, left=True,right=True)
     

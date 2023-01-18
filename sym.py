@@ -1,34 +1,41 @@
 import sympy as sp
 import numpy as np
 
-x,y,z = sp.symbols('x, y, z')
+# x,y,z = sp.symbols('x, y, z')
 
-def f(x,y,z):
-    return x**2 + 2*y + z
+# def f(x,y,z):
+#     return x**2 + 2*y + z
 
-print(f(x,y,z))
+# print(f(x,y,z))
 
-a = sp.Symbol('a')
-x = a
-print("a ver = ",f(x,y,z))
+# a = sp.Symbol('a')
+# x = a
+# print("a ver = ",f(x,y,z))
 
-p = sp.MatrixSymbol('p',2,1)
-z = sp.MatrixSymbol('z',4,1)
+sym_p = sp.MatrixSymbol('p',2,1)
+sym_z = sp.MatrixSymbol('z',2,1)
 def y(z,p):
     ret = sp.Matrix([
-        z[0]*z[0] + 2*p[0],
+        z[0]*z[0] + 2*p[0] + z[1]*z[1],
         2*z[1] + p[1]*p[1]
     ])
     return ret
-print("test",y(z,p))
-# p = z[2:4,0]
-print("pshape",p.shape)
+# print("test",y(z,p))
+# # p = z[2:4,0]
+# print("pshape",p.shape)
 # p[0:1,0] = z[2:3,0]
-print("z_ver",y(z,p))
-s = 2
-print(s)
-p = s **3
-print(p)
+# print("z_ver",y(z,p))
+F = y(sym_z,sym_p)
+J = F.jacobian(sym_z)
+print(F)
+print(J)
+z = np.array([1,2,3,4]).reshape(4,1)
+print(z)
+# s = sp.Matrix([1,2,3,4]).reshape(4,1)
+s = sp.Matrix(z)
+# J_sub = J.subs([sym_z,z])
+J_sub = J.subs(sym_z,s)
+print(J_sub)
 # a = np.array([[1,2,3,4],
 #             [5,6,7,8],
 #             [9,10,11,12],

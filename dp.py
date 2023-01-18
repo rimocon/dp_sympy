@@ -80,6 +80,9 @@ def func(t, x, p, c):
     (2.0*cos(x[2]) + 3.0)/(-(1.0*cos(x[2]) + 1.0)**2 + 2.0*cos(x[2]) + 3.0)]
     ])
     ##この4本から3本だけでいい
+    
+    # print("dfdl",dFdl)
+    # print("dfdl_lambda",dFdl[0:4,3])
     # ここの0:4,3←ここは選択するパラメタによって変える
     p = (dFdx @ dphidx.reshape(20,1)[16:20] + dFdl[0:4,3].reshape(4,1)).reshape(4,)
     ## 元の微分方程式+変分方程式に結合
@@ -104,13 +107,14 @@ def main():
     # import numpy constant
     ds.c = ds_func.sp2np(ds.const).flatten()
 
-   
+    # ここで平衡点+固有値などセット
+    spp = sp.Matrix(ds.p)
+    ds.sp_x0 = Eq_check(spp,ds)
+    ds.x0 = ds_func.sp2np(ds.sp_x0)
+    Eigen(ds.sp_x0,spp,ds)
 
-    # tau = 10
-    ds.x0 = Eq_check(ds.params,ds)
-    Eigen(ds.x0,ds.params,ds)
+
     vp = np.block([ds.x_alpha,ds.x_omega,ds.p[ds.var],ds.duration[1]])
-    # print("vpshape",vp.shape)
     solve(vp,ds)
     ds.sym_F = ds_func.newton_F(ds.sym_z,ds)
     # print("sym_F= ",ds.sym_F)
@@ -120,8 +124,8 @@ def main():
    
 
 def Condition(z,ds):
-    F = ds.sym_F.subs([(ds.sym_x,ds.x0),(ds.sym_z,z)])
-    J = ds.sym_J.subs([(ds.sym_x,ds.x0),(ds.sym_z,z)])
+    F = ds.sym_F.subs([(ds.sym_x,ds.sp_x0),(ds.sym_z,z)])
+    J = ds.sym_J.subs([(ds.sym_x,ds.sp_x0),(ds.sym_z,z)])
     F = ds_func.sp2np(F)
     J = ds_func.sp2np(J)
     dFdlambda = J[:,8+ds.var].reshape(10,1)
@@ -136,6 +140,8 @@ def Condition(z,ds):
             J[i+6][j+4] = ds.state_m.y[4+i+4*j,-1]
     p = ds.p
     p[ds.var] = z[8+ds.var]
+
+
     M1 = ds.c[0]
     M2 = ds.c[1]
     L1 = ds.c[2]
@@ -160,7 +166,7 @@ def Condition(z,ds):
     x[0:4] = ds.state_m.y[0:4,-1]
     a11m= M2 * L2 * L2 + (M1 + M2) * L1 * L1 + 2 * M2 * L1 * L2 * cos(x[2])
     a12m = M2 * L2 * L2 + M2 * L1 * L2 * cos(x[2])
-    a21m = a12p
+    a21m = a12m
     a22m = M2 * L2 * L2
     b1m = (p[2] + M2 * L1 * L2 * sin(x[2]) * x[3] * x[3]
         + 2 * M2 * L1 * L2 * sin(x[2]) * x[1] * x[3]
@@ -170,11 +176,12 @@ def Condition(z,ds):
     b2m = (p[3] - M2 * L1 * L2 * sin(x[2]) * x[1] * x[1]
         - M2 * L2 * G * cos(x[0] + x[2]) 
         - p[1] * x[3])
-    deltam = a11p * a22p - a12p * a21p
-    J[6][9] = ds.state_p.y[1,-1] - ds.state_m.y[1,-1]
-    J[7][9] = (b1p * a22p - b2p * a12p) / deltap - (b1m * a22m - b2m * a12m) / deltam
-    J[8][9] = ds.state_p.y[3,-1] - ds.state_m.y[3,-1]
-    J[9][9] = (b2p * a11p - b1p * a21p) / deltap - (b2m * a11m - b1m * a21m) / deltam
+    deltam = a11m * a22m - a12m * a21m
+    ### ここプラスかマイナスどっち？
+    J[6][9] = ds.state_p.y[1,-1] + ds.state_m.y[1,-1]
+    J[7][9] = (b1p * a22p - b2p * a12p) / deltap + (b1m * a22m - b2m * a12m) / deltam
+    J[8][9] = ds.state_p.y[3,-1] + ds.state_m.y[3,-1]
+    J[9][9] = (b2p * a11p - b1p * a21p) / deltap + (b2m * a11m - b1m * a21m) / deltam
     # print("J[6][9]",J[6][9])
     # print("J[7][9]",J[7][9])
     # print("J[8][9]",J[8][9])
@@ -182,71 +189,55 @@ def Condition(z,ds):
     return F,J
 
 
-def Eigen(x0,p,ds):
+def Eigen(x0, p, ds):
     #パラメータに依存するように
-    # eq = ds_func.equilibrium(ds)
-    eq = ds_func.set_x0(p,ds.c) 
-    x0 = ds_func.sp2np(eq)
-    x0 = x0[0,:]
-    # print("x0\n",x0)
-    # for i in range(4):
-    #     eig,eig_vl,eig_vr = ds_func.eigen(eq, ds, i)
-
-    eig,eig_vl,eig_vr = ds_func.eigen(eq, ds, 0)
+    eig,eig_vl,eig_vr = ds_func.eigen(x0, p, ds)
     print("eigenvalue\n", eig)
     ds.mu_alpha = eig[1].real
     ds.mu_omega = eig[2].real
     eig_vr = eig_vr * (-1)
     print("eigen_vector",*eig_vr[:,].T,sep='\n')
     delta = eig_vr[:,].T * ds.delta
-    ds.xa = x0 + delta
-
-    eig_vr = eig_vr * (-1)
-    # print("inverse_eigen_vector",*eig_vr[:,].T,sep='\n')
-    delta = eig_vr[:,].T * ds.delta
-    ds.xb = x0 + delta
-
+    # print("delta",delta)
+    np_x0 = ds_func.sp2np(x0)
+    # ds.xa = np_x0 + delta[0,:].reshape(4,1)
+    # print("xa",ds.xa)
+    # eig_vr = eig_vr * (-1)
+    # # print("inverse_eigen_vector",*eig_vr[:,].T,sep='\n')
+    # delta = eig_vr[:,].T * ds.delta
+    # ds.xb = x0  + delta
+    # print("xa",ds.xa)
+    # print("xb",ds.xb)
     ####ここは８本から２本選択
-    ds.x_alpha = ds.xa[1,:]
-    ds.x_omega = ds.xa[2,:]
-    print("x0", x0)
+    ds.x_alpha = (np_x0 + delta[1,:].reshape(4,1)).flatten()
+    ds.x_omega = (np_x0 + delta[2,:].reshape(4,1)).flatten()
+    # print("x0", np_x0)
     print("x_alpha", ds.x_alpha)
     print("x_omega", ds.x_omega)
 
 def Eq_check(p,ds):
     eq = ds_func.set_x0(p,ds.c)
+    # print("eq",eq)
     vp = eq[0,:].T
-    vp = sp.Matrix(vp)
-    # print("eq=",vp)
 
-    # for i in range(ds.xdim):
-    #     F = ds.F.subs([(ds.sym_x, vp[0,:].T), (ds.sym_p, ds.params)])
-    #     print(F'eq{i} = {F}')
-
-    J = ds.F.jacobian(ds.sym_x)
     for i in range(ds.iter_max):
         F = ds.F.subs([(ds.sym_x, vp), (ds.sym_p, p)])
-        J = J.subs([(ds.sym_x, vp), (ds.sym_p, p)])
+        J = ds.dFdx.subs([(ds.sym_x, vp), (ds.sym_p, p)])
         F = ds_func.sp2np(F)
         J = ds_func.sp2np(J)
-        # print(F'eq{1} = {F}')
-        # print(J)
-
         dif = abs(np.linalg.norm(F))
         print("dif=",dif)
         if dif < ds.eps:
             print("success!!!")
             print("solve vp = ",vp)
             return vp
+        
         if dif > ds.explode:
             print("Exploded")
             exit()
             # vn = xk+1
             # print("vp=",vp)
-        test = np.linalg.solve(J,-F)
-        print(test)
         vn = np.linalg.solve(J,-F) + vp
-        print("i=",i)
         print("vn=",vn)
         vp = vn
         # if vn[5] > 1.0:
@@ -288,9 +279,17 @@ def newton_method(vp,ds):
         print(f"###################iteration:{i}#######################")
         # パラメタだけセット
         p[ds.var] = vp[8]
-        # パラメタによって平衡点は変化するのでセットしなおし
-        ds.x0 = (ds_func.set_x0(p,ds.c)[0,:]).reshape(4,1)
-        # print("x0",ds.x0)
+        # # パラメタによって平衡点は変化するのでセットしなおし
+        # eq = ds_func.set_x0(p,ds.c)
+        # ds.x0 = (ds_func.set_x0(p,ds.c)[0,:]).reshape(4,1)
+        spp = sp.Matrix(p)
+        ds.sp_x0 = Eq_check(spp,ds)
+        ds.x0 = ds_func.sp2np(ds.sp_x0)
+        Eigen(ds.sp_x0,spp,ds)
+        
+        # # print("x0",ds.x0)
+        # Eigen(eq,p,ds)
+
         # 微分方程式+変分方程式を初期値vpで解く
         solve(vp,ds)
         z = np.block([vp[0:4],vp[4:8],p])
